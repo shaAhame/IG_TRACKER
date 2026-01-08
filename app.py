@@ -102,7 +102,7 @@ with st.sidebar:
     )
     
     st.markdown("---")
-    st.caption("Made with ❤️ for Mobile Shops 🇱🇰")
+    st.caption("Made with IDealz Lanka (PVT) Ltd 🇱🇰")
 
 # ============================================
 # HOME PAGE
