@@ -771,7 +771,7 @@ st.markdown("---")
 st.markdown("""
 <div style='text-align: center; color: gray; padding: 20px;'>
     <strong>📱 Instagram Message Analyzer v1.0</strong><br>
-    Made with ❤️ for Mobile Phone Shops in Sri Lanka 🇱🇰<br>
+    Made with for Idealz Lanka PVT (Ltd) in Sri Lanka 🇱🇰<br>
     <small>Analyze smarter, sell faster!</small>
 </div>
 """, unsafe_allow_html=True)
