@@ -476,13 +476,86 @@ elif page == "📊 Daily Analysis":
                     
                     # Display results
                     st.markdown("### 📊 Analysis Results")
+                    
+                    # Detailed legend with explanations
+                    st.markdown("""
+                    <div style='background:#f8f9fa; padding:12px; border-radius:8px; margin-bottom:16px;'>
+                    <b>📌 Understanding the Analysis:</b><br>
+                    <table style='width:100%; border-collapse:collapse;'>
+                    <tr style='border-bottom:1px solid #ddd;'>
+                        <td style='padding:8px;'><b>SENTIMENT</b> (Customer Mood)</td>
+                        <td style='padding:8px;'>
+                            <span style='background:#2ecc71; color:white; padding:2px 6px; border-radius:3px;'>😊 Positive</span>
+                            Customer is happy & satisfied
+                        </td>
+                    </tr>
+                    <tr style='border-bottom:1px solid #ddd;'>
+                        <td style='padding:8px;'></td>
+                        <td style='padding:8px;'>
+                            <span style='background:#e74c3c; color:white; padding:2px 6px; border-radius:3px;'>😟 Negative</span>
+                            Customer has concerns or complaints
+                        </td>
+                    </tr>
+                    <tr style='border-bottom:1px solid #ddd;'>
+                        <td style='padding:8px;'></td>
+                        <td style='padding:8px;'>
+                            <span style='background:#3498db; color:white; padding:2px 6px; border-radius:3px;'>😐 Neutral</span>
+                            Customer is asking factual questions
+                        </td>
+                    </tr>
+                    <tr style='border-bottom:1px solid #ddd;'>
+                        <td style='padding:8px;'><b>SEGMENT</b> (Customer Type)</td>
+                        <td style='padding:8px;'>
+                            <span style='background:#ff4444; color:white; padding:2px 6px; border-radius:3px;'>🔥 Hot Lead</span>
+                            New customer, VERY interested, ready to buy NOW
+                        </td>
+                    </tr>
+                    <tr style='border-bottom:1px solid #ddd;'>
+                        <td style='padding:8px;'></td>
+                        <td style='padding:8px;'>
+                            <span style='background:#ffbb33; color:white; padding:2px 6px; border-radius:3px;'>✨ Warm Lead</span>
+                            New customer, moderately interested
+                        </td>
+                    </tr>
+                    <tr style='border-bottom:1px solid #ddd;'>
+                        <td style='padding:8px;'></td>
+                        <td style='padding:8px;'>
+                            <span style='background:#9C27B0; color:white; padding:2px 6px; border-radius:3px;'>👑 VIP</span>
+                            Returning customer, high engagement & intent
+                        </td>
+                    </tr>
+                    <tr style='border-bottom:1px solid #ddd;'>
+                        <td style='padding:8px;'></td>
+                        <td style='padding:8px;'>
+                            <span style='background:#2196F3; color:white; padding:2px 6px; border-radius:3px;'>🎯 Engaged</span>
+                            Returning customer, actively discussing
+                        </td>
+                    </tr>
+                    <tr style='border-bottom:1px solid #ddd;'>
+                        <td style='padding:8px;'></td>
+                        <td style='padding:8px;'>
+                            <span style='background:#FF9800; color:white; padding:2px 6px; border-radius:3px;'>📋 New</span>
+                            First-time visitor, browsing/exploring
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style='padding:8px;'></td>
+                        <td style='padding:8px;'>
+                            <span style='background:#757575; color:white; padding:2px 6px; border-radius:3px;'>💼 Returning</span>
+                            Repeat visitor, low current interest
+                        </td>
+                    </tr>
+                    </table>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
                     # Small sentiment legend for clarity
                     st.markdown("""
-                    <div style='margin-bottom:8px;'>
-                        <span class='legend-badge' style='background:#2ecc71'></span> Positive &nbsp;&nbsp;
-                        <span class='legend-badge' style='background:#e74c3c'></span> Negative &nbsp;&nbsp;
-                        <span class='legend-badge' style='background:#3498db'></span> Neutral &nbsp;&nbsp;
-                        <span style='margin-left:18px; color:#555;'>| Intent color: 🔥 Very High / 🎯 High / ⚠️ Medium</span>
+                    <div style='margin-bottom:8px; color:#666; font-size:0.9em;'>
+                        <b>Intent Colors:</b>
+                        <span style='background:#ff4444; color:white; padding:2px 6px; border-radius:3px; margin-right:8px;'>Very High (80%+)</span>
+                        <span style='background:#ffbb33; color:white; padding:2px 6px; border-radius:3px; margin-right:8px;'>High (60-80%)</span>
+                        <span style='background:#4CAF50; color:white; padding:2px 6px; border-radius:3px;'>Medium (40-60%)</span>
                     </div>
                     """, unsafe_allow_html=True)
                     
@@ -713,6 +786,24 @@ elif page == "📈 Statistics":
         st.warning("⚠️ Please run Daily Analysis first to see statistics")
         st.info("💡 Go to 'Daily Analysis' page and analyze your messages")
     else:
+        # Add legend section at top
+        st.markdown("""
+        <div style='background:#f0f7ff; padding:12px; border-radius:8px; margin-bottom:16px; border-left:4px solid #0052cc;'>
+        <b>📌 Quick Guide to Sentiment & Segment:</b><br><br>
+        <b>SENTIMENT</b> = Customer's Emotional Tone
+        <span style='background:#2ecc71; color:white; padding:1px 4px; border-radius:2px; margin-left:8px;'>😊 Positive</span>
+        <span style='background:#e74c3c; color:white; padding:1px 4px; border-radius:2px; margin-left:4px;'>😟 Negative</span>
+        <span style='background:#3498db; color:white; padding:1px 4px; border-radius:2px; margin-left:4px;'>😐 Neutral</span>
+        <br><br>
+        <b>SEGMENT</b> = Customer Lifecycle Stage
+        <span style='background:#ff4444; color:white; padding:1px 4px; border-radius:2px; margin-left:8px;'>🔥 Hot (New+High Intent)</span>
+        <span style='background:#ffbb33; color:white; padding:1px 4px; border-radius:2px; margin-left:4px;'>✨ Warm (New+Medium)</span>
+        <span style='background:#9C27B0; color:white; padding:1px 4px; border-radius:2px; margin-left:4px;'>👑 VIP (Returning+High)</span>
+        <span style='background:#2196F3; color:white; padding:1px 4px; border-radius:2px; margin-left:4px;'>🎯 Engaged (Returning+Active)</span>
+        <span style='background:#FF9800; color:white; padding:1px 4px; border-radius:2px; margin-left:4px;'>📋 New (First-time)</span>
+        </div>
+        """, unsafe_allow_html=True)
+        
         results = st.session_state.results
         df = st.session_state.df
         
