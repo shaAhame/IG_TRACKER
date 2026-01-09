@@ -4,6 +4,7 @@ import os
 from datetime import datetime, date
 from product_detector import ProductDetector
 from question_analyzer import QuestionAnalyzer
+from sentiment_analyzer import SentimentAnalyzer
 import config
 
 class DailyAnalyzer:
@@ -12,6 +13,7 @@ class DailyAnalyzer:
         config.setup_directories()
         self.product_detector = ProductDetector()
         self.question_analyzer = QuestionAnalyzer()
+        self.sentiment_analyzer = SentimentAnalyzer()
         print("✅ System ready!\n")
     
     def analyze_today(self, excel_file=None):
@@ -128,7 +130,10 @@ class DailyAnalyzer:
         ready_to_buy = self.question_analyzer.is_ready_to_buy(text)
         timeframe = self.question_analyzer.detect_timeframe(text)
         
-        # Calculate intent
+        # Sentiment analysis
+        sentiment_analysis = self.sentiment_analyzer.analyze(text)
+        
+        # Calculate intent with enhanced scoring
         score = 0.3
         urgent_q = sum(1 for q in questions if q['urgency'] == 'high')
         score += urgent_q * 0.15
@@ -138,6 +143,17 @@ class DailyAnalyzer:
             score += 0.25
         if history_count > 0:
             score += min(history_count * 0.05, 0.15)
+        
+        # Boost score based on sentiment
+        if sentiment_analysis['sentiment'] in ['Very Positive', 'Positive']:
+            score += 0.1
+        elif sentiment_analysis['is_eager']:
+            score += 0.15
+        
+        # Boost for urgency modifiers
+        urgency_modifier = self.question_analyzer.detect_urgency_modifiers(text)
+        score += min(urgency_modifier * 0.02, 0.2)
+        
         score = min(score, 1.0)
         
         if score >= 0.8:
@@ -149,13 +165,20 @@ class DailyAnalyzer:
         else:
             intent = "Low"
         
+        # Customer segmentation
+        customer_segment = self.question_analyzer.segment_customer(text, history_count, score)
+        
         return {
             'product': primary_product,
             'questions': all_questions,
             'intent': intent,
             'intent_score': f"{score:.0%}",
             'ready_to_buy': 'YES' if ready_to_buy else 'NO',
-            'timeframe': timeframe
+            'timeframe': timeframe,
+            'sentiment': sentiment_analysis['sentiment'],
+            'customer_segment': customer_segment,
+            'is_eager': 'YES' if sentiment_analysis['is_eager'] else 'NO',
+            'has_doubts': 'YES' if sentiment_analysis['has_doubts'] else 'NO'
         }
     
     def _generate_reports(self, results, today, stats):

@@ -8,6 +8,7 @@ from datetime import datetime, date
 import os
 from product_detector import ProductDetector
 from question_analyzer import QuestionAnalyzer
+from sentiment_analyzer import SentimentAnalyzer
 
 # Page configuration
 st.set_page_config(
@@ -49,6 +50,71 @@ st.markdown("""
         font-weight: bold;
         margin: 0.5rem 0;
     }
+    .sentiment-positive {
+        background-color: #4CAF50;
+        color: white;
+        padding: 0.3rem 0.6rem;
+        border-radius: 3px;
+        font-weight: bold;
+        font-size: 0.9rem;
+    }
+    .sentiment-negative {
+        background-color: #f44336;
+        color: white;
+        padding: 0.3rem 0.6rem;
+        border-radius: 3px;
+        font-weight: bold;
+        font-size: 0.9rem;
+    }
+    .sentiment-neutral {
+        background-color: #2196F3;
+        color: white;
+        padding: 0.3rem 0.6rem;
+        border-radius: 3px;
+        font-weight: bold;
+        font-size: 0.9rem;
+    }
+    .segment-badge {
+        display: inline-block;
+        padding: 0.4rem 0.8rem;
+        border-radius: 15px;
+        font-weight: bold;
+        margin: 0.2rem 0.2rem 0.2rem 0;
+        font-size: 0.85rem;
+    }
+    .hot-lead {
+        background-color: #ff4444;
+        color: white;
+    }
+    .warm-lead {
+        background-color: #ffb74d;
+        color: white;
+    }
+    .vip-customer {
+        background-color: #9c27b0;
+        color: white;
+    }
+    .urgency-extreme {
+        background-color: #ff1744;
+        color: white;
+        padding: 0.3rem 0.6rem;
+        border-radius: 3px;
+        font-weight: bold;
+    }
+    .urgency-high {
+        background-color: #ff9100;
+        color: white;
+        padding: 0.3rem 0.6rem;
+        border-radius: 3px;
+        font-weight: bold;
+    }
+    .urgency-medium {
+        background-color: #fbc02d;
+        color: white;
+        padding: 0.3rem 0.6rem;
+        border-radius: 3px;
+        font-weight: bold;
+    }
     .stButton>button {
         width: 100%;
     }
@@ -67,9 +133,9 @@ if 'df' not in st.session_state:
 @st.cache_resource
 def load_analyzers():
     """Load analyzers once and cache them"""
-    return ProductDetector(), QuestionAnalyzer()
+    return ProductDetector(), QuestionAnalyzer(), SentimentAnalyzer()
 
-product_detector, question_analyzer = load_analyzers()
+product_detector, question_analyzer, sentiment_analyzer = load_analyzers()
 
 # Sidebar
 with st.sidebar:
@@ -285,11 +351,17 @@ elif page == "📊 Daily Analysis":
                         questions = question_analyzer.analyze_questions(message)
                         all_questions = question_analyzer.format_questions_list(questions)
                         
+                        # Sentiment analysis
+                        sentiment_analysis = sentiment_analyzer.analyze(message)
+                        
+                        # Urgency modifiers
+                        urgency_modifier = question_analyzer.detect_urgency_modifiers(message)
+                        
                         # Intent signals
                         ready_to_buy = question_analyzer.is_ready_to_buy(message)
                         timeframe = question_analyzer.detect_timeframe(message)
                         
-                        # Calculate intent score
+                        # Calculate intent score with sentiment boost
                         score = 0.3
                         urgent_q = sum(1 for q in questions if q['urgency'] == 'high')
                         score += urgent_q * 0.15
@@ -301,7 +373,20 @@ elif page == "📊 Daily Analysis":
                             score += 0.10
                         if history_count > 0:
                             score += min(history_count * 0.05, 0.15)
+                        
+                        # Boost score based on sentiment
+                        if sentiment_analysis['sentiment'] in ['Very Positive', 'Positive']:
+                            score += 0.1
+                        elif sentiment_analysis['is_eager']:
+                            score += 0.15
+                        
+                        # Boost for urgency modifiers
+                        score += min(urgency_modifier * 0.02, 0.2)
+                        
                         score = min(score, 1.0)
+                        
+                        # Customer segmentation (after score is calculated)
+                        customer_segment = question_analyzer.segment_customer(message, history_count, score)
                         
                         # Intent level
                         if score > 0.8:
@@ -332,7 +417,11 @@ elif page == "📊 Daily Analysis":
                             'timeframe': timeframe,
                             'ready_to_buy': 'YES' if ready_to_buy else 'NO',
                             'stage': stage,
-                            'message_number': history_count + 1
+                            'message_number': history_count + 1,
+                            'sentiment': sentiment_analysis['sentiment'],
+                            'customer_segment': customer_segment,
+                            'is_eager': 'YES' if sentiment_analysis['is_eager'] else 'NO',
+                            'has_doubts': 'YES' if sentiment_analysis['has_doubts'] else 'NO'
                         })
                     
                     # Clear progress indicators
@@ -353,18 +442,53 @@ elif page == "📊 Daily Analysis":
                     
                     results_df = pd.DataFrame(results)
                     
+                    # Add visual badges
+                    display_results = []
+                    for r in results:
+                        # Sentiment badge
+                        sentiment_emoji = "😊" if r['sentiment'] == 'Positive' else "😟" if r['sentiment'] == 'Negative' else "😐"
+                        
+                        # Segment badge with styling
+                        segment_map = {
+                            'Hot Lead': '🔥 Hot Lead',
+                            'Warm Lead': '🌡️ Warm Lead',
+                            'VIP': '👑 VIP',
+                            'Engaged Buyer': '💬 Engaged',
+                            'New Prospect': '🆕 New',
+                            'Browsing': '👀 Browse'
+                        }
+                        segment_badge = segment_map.get(r['customer_segment'], r['customer_segment'])
+                        
+                        display_results.append({
+                            'Username': r['username'],
+                            'Message': r['message'],
+                            'Product': r['product'],
+                            'Questions': r['questions'],
+                            'Intent': r['intent'],
+                            'Score': r['intent_score'],
+                            'Timeframe': r['timeframe'],
+                            'Stage': r['stage'],
+                            f'Sentiment {sentiment_emoji}': r['sentiment'],
+                            'Segment': segment_badge,
+                            'Eager': r['is_eager'],
+                            'Doubts': r['has_doubts'],
+                            'Ready': r['ready_to_buy']
+                        })
+                    
+                    display_df = pd.DataFrame(display_results)
+                    
                     # Color coding function
                     def highlight_intent(row):
-                        if row['intent'] == 'Very High':
+                        if row['Intent'] == 'Very High':
                             return ['background-color: #ff4444; color: white'] * len(row)
-                        elif row['intent'] == 'High':
+                        elif row['Intent'] == 'High':
                             return ['background-color: #ffbb33; color: white'] * len(row)
-                        elif row['intent'] == 'Medium':
+                        elif row['Intent'] == 'Medium':
                             return ['background-color: #4CAF50; color: white'] * len(row)
                         else:
                             return [''] * len(row)
                     
-                    styled_df = results_df.style.apply(highlight_intent, axis=1)
+                    styled_df = display_df.style.apply(highlight_intent, axis=1)
                     st.dataframe(styled_df, use_container_width=True)
                     
                     # Download button
@@ -397,6 +521,52 @@ elif page == "📊 Daily Analysis":
                     with col4:
                         low = len([r for r in results if r['intent'] == 'Low'])
                         st.metric("ℹ️ Low Intent", low)
+                    
+                    # Sentiment and Segment Distribution
+                    st.markdown("---")
+                    st.markdown("### 😊 Sentiment & Customer Analysis")
+                    
+                    col1, col2 = st.columns(2)
+                    
+                    with col1:
+                        sentiment_counts = {}
+                        for r in results:
+                            sentiment = r['sentiment']
+                            sentiment_counts[sentiment] = sentiment_counts.get(sentiment, 0) + 1
+                        
+                        if sentiment_counts:
+                            import matplotlib.pyplot as plt
+                            fig, ax = plt.subplots(figsize=(8, 5))
+                            ax.pie(sentiment_counts.values(), labels=sentiment_counts.keys(), autopct='%1.1f%%', 
+                                   colors=['#4CAF50', '#ff4444', '#9E9E9E'])
+                            ax.set_title("Sentiment Distribution")
+                            st.pyplot(fig)
+                    
+                    with col2:
+                        segment_counts = {}
+                        for r in results:
+                            segment = r['customer_segment']
+                            segment_counts[segment] = segment_counts.get(segment, 0) + 1
+                        
+                        if segment_counts:
+                            fig, ax = plt.subplots(figsize=(8, 5))
+                            segments = list(segment_counts.keys())
+                            counts = list(segment_counts.values())
+                            ax.barh(segments, counts, color=['#ff4444', '#ffbb33', '#4CAF50', '#2196F3', '#9C27B0', '#FF9800'])
+                            ax.set_xlabel("Number of Customers")
+                            ax.set_title("Customer Segment Distribution")
+                            st.pyplot(fig)
+                    
+                    # Hot Leads Indicator
+                    st.markdown("---")
+                    hot_leads = len([r for r in results if r['customer_segment'] == 'Hot Lead'])
+                    eager_customers = len([r for r in results if r['is_eager'] == 'YES'])
+                    
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        st.metric("🔥 Hot Leads", hot_leads, delta=f"{hot_leads} ready to buy")
+                    with col2:
+                        st.metric("😍 Eager Customers", eager_customers, delta=f"{eager_customers} show strong interest")
                     
                     # Priority summary
                     priority_count = very_high + high
@@ -443,7 +613,7 @@ elif page == "🚨 Priority Alerts":
                         st.markdown(f'<div class="priority-medium">⚠️ PRIORITY #{idx} - HIGH URGENCY</div>', unsafe_allow_html=True)
                     
                     # Customer details in columns
-                    col1, col2 = st.columns([2, 1])
+                    col1, col2, col3 = st.columns([2, 1.5, 1.5])
                     
                     with col1:
                         st.markdown(f"### 👤 @{p['username']}")
@@ -454,12 +624,34 @@ elif page == "🚨 Priority Alerts":
                         st.metric("Intent Level", p['intent'], p['intent_score'])
                         st.write(f"**Product Interest:** {p['product']}")
                         st.write(f"**Questions:** {p['questions']}")
+                    
+                    with col3:
+                        # Sentiment badge
+                        sentiment_emoji = "😊" if p['sentiment'] == 'Positive' else "😟" if p['sentiment'] == 'Negative' else "😐"
+                        st.write(f"**Sentiment:** {sentiment_emoji} {p['sentiment']}")
+                        
+                        # Segment badge
+                        segment_map = {
+                            'Hot Lead': '🔥 Hot Lead',
+                            'Warm Lead': '🌡️ Warm Lead',
+                            'VIP': '👑 VIP',
+                            'Engaged Buyer': '💬 Engaged',
+                            'New Prospect': '🆕 New',
+                            'Browsing': '👀 Browse'
+                        }
+                        segment_display = segment_map.get(p['customer_segment'], p['customer_segment'])
+                        st.write(f"**Segment:** {segment_display}")
                         st.write(f"**Timeframe:** {p['timeframe']}")
                         st.write(f"**Ready to Buy:** {p['ready_to_buy']}")
                     
-                    # Action recommendation
+                    # Action recommendation based on sentiment and segment
                     if p['intent'] == 'Very High':
-                        st.error("⚡ **URGENT ACTION:** Reply within 30 minutes! Customer is ready to buy NOW!")
+                        if p['sentiment'] == 'Positive' and p['is_eager'] == 'YES':
+                            st.success("⚡ **URGENT ACTION:** Reply within 15 minutes! Customer is VERY eager and positive!")
+                        elif p['has_doubts'] == 'YES':
+                            st.warning("⚡ **URGENT ACTION:** Reply within 30 minutes! Address doubts and concerns!")
+                        else:
+                            st.error("⚡ **URGENT ACTION:** Reply within 30 minutes! Customer is ready to buy NOW!")
                     else:
                         st.warning("⏰ **ACTION REQUIRED:** Reply within 2 hours to maintain interest")
                     
@@ -515,6 +707,101 @@ elif page == "📈 Statistics":
                 for intent, count in sorted(intent_counts.items(), key=lambda x: x[1], reverse=True):
                     percentage = (count / len(results)) * 100
                     st.metric(intent, f"{count} ({percentage:.1f}%)")
+        
+        st.markdown("---")
+        
+        # Sentiment analysis
+        st.markdown("### 😊 Sentiment & Emotion Analysis")
+        
+        col1, col2 = st.columns(2)
+        
+        sentiment_counts = {}
+        segment_counts = {}
+        eager_count = 0
+        doubt_count = 0
+        
+        for r in results:
+            sentiment = r['sentiment']
+            sentiment_counts[sentiment] = sentiment_counts.get(sentiment, 0) + 1
+            
+            segment = r['customer_segment']
+            segment_counts[segment] = segment_counts.get(segment, 0) + 1
+            
+            if r['is_eager'] == 'YES':
+                eager_count += 1
+            if r['has_doubts'] == 'YES':
+                doubt_count += 1
+        
+        with col1:
+            if sentiment_counts:
+                import matplotlib.pyplot as plt
+                fig, ax = plt.subplots(figsize=(8, 6))
+                colors_map = {'Positive': '#4CAF50', 'Negative': '#ff4444', 'Neutral': '#9E9E9E'}
+                colors = [colors_map.get(s, '#9E9E9E') for s in sentiment_counts.keys()]
+                ax.pie(sentiment_counts.values(), labels=sentiment_counts.keys(), autopct='%1.1f%%', colors=colors)
+                ax.set_title("Customer Sentiment Distribution")
+                st.pyplot(fig)
+        
+        with col2:
+            # Sentiment metrics
+            st.write("**Sentiment Overview:**")
+            for sentiment, count in sorted(sentiment_counts.items()):
+                emoji = "😊" if sentiment == 'Positive' else "😟" if sentiment == 'Negative' else "😐"
+                percentage = (count / len(results)) * 100
+                st.metric(f"{emoji} {sentiment}", f"{count} ({percentage:.1f}%)")
+        
+        # Emotional Signals
+        st.markdown("---")
+        st.markdown("### 💭 Emotional Signals & Customer Readiness")
+        
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            st.metric("😍 Eager Customers", eager_count, f"{(eager_count/len(results)*100):.1f}% show strong interest")
+        with col2:
+            st.metric("🤔 Customers with Doubts", doubt_count, f"{(doubt_count/len(results)*100):.1f}% need reassurance")
+        with col3:
+            positive_sentiment = sentiment_counts.get('Positive', 0)
+            st.metric("😊 Positive Sentiment", positive_sentiment, f"{(positive_sentiment/len(results)*100):.1f}% are happy")
+        
+        # Customer Segment Distribution
+        st.markdown("---")
+        st.markdown("### 👥 Customer Segment Distribution")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            if segment_counts:
+                import matplotlib.pyplot as plt
+                fig, ax = plt.subplots(figsize=(8, 6))
+                segment_colors = {
+                    'Hot Lead': '#ff4444',
+                    'Warm Lead': '#ffbb33',
+                    'VIP': '#FFD700',
+                    'Engaged Buyer': '#2196F3',
+                    'New Prospect': '#9C27B0',
+                    'Browsing': '#FF9800'
+                }
+                colors = [segment_colors.get(s, '#9E9E9E') for s in segment_counts.keys()]
+                ax.barh(list(segment_counts.keys()), list(segment_counts.values()), color=colors)
+                ax.set_xlabel("Number of Customers")
+                ax.set_title("Customer Segments")
+                st.pyplot(fig)
+        
+        with col2:
+            st.write("**Segment Details:**")
+            segment_labels = {
+                'Hot Lead': '🔥 Hot Leads',
+                'Warm Lead': '🌡️ Warm Leads',
+                'VIP': '👑 VIP Customers',
+                'Engaged Buyer': '💬 Engaged Buyers',
+                'New Prospect': '🆕 New Prospects',
+                'Browsing': '👀 Browsing'
+            }
+            for segment, count in sorted(segment_counts.items(), key=lambda x: x[1], reverse=True):
+                label = segment_labels.get(segment, segment)
+                percentage = (count / len(results)) * 100
+                st.metric(label, f"{count} ({percentage:.1f}%)")
         
         st.markdown("---")
         

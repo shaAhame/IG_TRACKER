@@ -4,45 +4,147 @@ class QuestionAnalyzer:
     def __init__(self):
         self.patterns = {
             'Price': {
-                'keywords': ['price', 'how much', 'cost', 'kiyada', 'කීයද', 'ගණන', 'මිල'],
+                'keywords': [
+                    # English
+                    'price', 'how much', 'cost', 'expensive', 'cheaper', 'discount',
+                    'offer', 'rate', 'rupees', 'rs.', 'lkr', 'lowest price',
+                    'best price', 'bulk discount', 'wholesale',
+                    # Sinhala
+                    'කීයද', 'ගණන', 'මිල', 'නිසැ', 'වඩා', 'අඩු',
+                    'මිල අධිකයි', 'සිතුම්', 'දි'
+                ],
                 'priority': 1,
                 'urgency': 'high'
             },
             'Availability': {
-                'keywords': ['available', 'have', 'stock', 'තියෙනවද', 'තියනවද', 'do you have', 'do u have'],
+                'keywords': [
+                    # English
+                    'available', 'have', 'stock', 'do you have', 'do u have',
+                    'in stock', 'out of stock', 'left', 'remaining', 'quantity',
+                    'how many', 'still have',
+                    # Sinhala
+                    'තියෙනවද', 'තියනවද', 'තිබේ', 'තිබේද', 'තිබුණ',
+                    'එක තිබේ', 'බරක තිබේ'
+                ],
                 'priority': 1,
                 'urgency': 'high'
             },
-            'Payment': {
-                'keywords': ['installment', 'payment', 'card', 'වාරික', 'monthly', 'emi'],
+            'Payment Methods': {
+                'keywords': [
+                    # English
+                    'installment', 'card', 'emi', 'monthly', 'bank transfer',
+                    'cash', 'credit', 'debit', 'online payment', 'sslcommerz',
+                    'dialog', 'warpin', 'payment plan',
+                    # Sinhala
+                    'වාරික', 'ගෙවුම්', 'කර්ඩ්', 'මාසිකව', 'බැංකුවට'
+                ],
                 'priority': 2,
                 'urgency': 'medium'
             },
-            'Exchange': {
-                'keywords': ['exchange', 'trade', 'old phone', 'give', 'trade in'],
+            'Exchange & Trade-In': {
+                'keywords': [
+                    # English
+                    'exchange', 'trade', 'trade in', 'old phone', 'give', 'part exchange',
+                    'upgrade', 'swap', 'return', 'refund', 'buyback',
+                    # Sinhala
+                    'එක්ස්චේන්ජ්', 'ගබඩා', 'පැරණි', 'පිටපත්'
+                ],
                 'priority': 2,
                 'urgency': 'medium'
             },
-            'Colors': {
-                'keywords': ['color', 'colour', 'black', 'white', 'blue', 'red', 'pink'],
+            'Storage & Memory': {
+                'keywords': [
+                    # English
+                    'storage', 'gb', 'tb', 'memory', 'ram', 'capacity',
+                    '64gb', '128gb', '256gb', '512gb', '1tb',
+                    '8gb', '12gb', '16gb', '32gb',
+                    # Sinhala
+                    'ගිබී', 'ටිබී', 'මතකය'
+                ],
                 'priority': 3,
                 'urgency': 'medium'
             },
-            'Warranty': {
-                'keywords': ['warranty', 'guarantee', 'original', 'වගකීම', 'brand new'],
+            'Colors & Variants': {
+                'keywords': [
+                    # English
+                    'color', 'colour', 'black', 'white', 'blue', 'red', 'pink',
+                    'silver', 'gold', 'gray', 'purple', 'green',
+                    'titanium', 'midnight', 'starlight', 'midnight black',
+                    'space gray', 'gold', 'rose gold',
+                    # Sinhala
+                    'වර්ණ', 'කළු', 'සුදු', 'නිල්'
+                ],
+                'priority': 3,
+                'urgency': 'medium'
+            },
+            'Warranty & Authenticity': {
+                'keywords': [
+                    # English
+                    'warranty', 'guarantee', 'original', 'authentic', 'genuine',
+                    'fake', 'real', 'certified', 'official', 'apple care',
+                    '1 year', '2 year', 'international', 'local', 'brand new',
+                    # Sinhala
+                    'වගකීම', 'අරඹුවෙ', 'ඔරිජිනල්', 'නිසැ'
+                ],
                 'priority': 4,
                 'urgency': 'low'
             },
-            'Delivery': {
-                'keywords': ['delivery', 'courier', 'send', 'යවන්න', 'ship'],
+            'Delivery & Shipping': {
+                'keywords': [
+                    # English
+                    'delivery', 'courier', 'send', 'ship', 'mail', 'deliver',
+                    'fast delivery', 'overnight', 'express', 'home delivery',
+                    'colombo', 'province', 'all over', 'everywhere',
+                    # Sinhala
+                    'යවන්න', 'දුරකතන', 'නගරයට', 'ප්‍රධානයට'
+                ],
                 'priority': 5,
                 'urgency': 'low'
             },
-            'Reservation': {
-                'keywords': ['reserve', 'preorder', 'book', 'keep', 'hold'],
+            'Reservation & Preorder': {
+                'keywords': [
+                    # English
+                    'reserve', 'preorder', 'pre-order', 'book', 'keep', 'hold',
+                    'coming soon', 'when available', 'waiting list', 'pre order',
+                    # Sinhala
+                    'බුක්', 'අපෙතින්න', 'සදහා'
+                ],
                 'priority': 2,
                 'urgency': 'high'
-            }
+            },
+            'Specifications & Features': {
+                'keywords': [
+                    # English
+                    'specs', 'specifications', 'features', 'processor', 'camera',
+                    'battery', 'display', 'screen', 'resolution', 'refresh rate',
+                    'fps', 'ai', 'ai features', 'performance', 'speed', 'benchmark',
+                    # Sinhala
+                    'විශේෂතා', 'ගුණාංග'
+                ],
+                'priority': 3,
+                'urgency': 'medium'
+            },
+            'Comparisons': {
+                'keywords': [
+                    # English
+                    'compare', 'vs', 'versus', 'better', 'difference', 'which one',
+                    'worth', 'best', 'should i get', 'recommend',
+                    # Sinhala
+                    'ඉතා', 'වඩා', 'වෙනස'
+                ],
+                'priority': 3,
+                'urgency': 'medium'
+            },
+            'Accessories': {
+                'keywords': [
+                    # English
+                    'case', 'screen protector', 'charger', 'cable', 'headphones',
+                    'adapter', 'dock', 'tempered glass', 'cover', 'accessories',
+                    'glass protector', 'usb-c'
+                ],
+                'priority': 5,
+                'urgency': 'low'
+            },
         }
     
     def analyze_questions(self, text):
@@ -90,8 +192,8 @@ class QuestionAnalyzer:
         text_lower = text.lower()
         
         timeframes = {
-            'Today': ['today', 'අද', 'right now', 'now'],
-            'Tomorrow': ['tomorrow', 'හෙට', 'tmrw'],
+            'Today': ['today', 'අද', 'right now', 'now', 'asap', 'today itself'],
+            'Tomorrow': ['tomorrow', 'හෙට', 'tmrw', 'tmr'],
             'This Weekend': ['weekend', 'saturday', 'sunday'],
             'Next Week': ['next week', 'ලබන සතියේ'],
             'This Month': ['this month', 'මේ මාසේ'],
@@ -102,3 +204,61 @@ class QuestionAnalyzer:
                 return tf
         
         return "Not specified"
+    
+    def segment_customer(self, text, history_count, intent_score):
+        """
+        Segment customers for personalized handling
+        Score should be between 0.0 and 1.0
+        """
+        if history_count == 0:
+            if intent_score > 0.8:
+                return "🔥 Hot Lead"  # New but very interested
+            elif intent_score > 0.6:
+                return "✨ Warm Lead"
+            else:
+                return "📋 New Prospect"
+        
+        elif history_count <= 2:
+            if intent_score > 0.8:
+                return "🎯 Engaged Buyer"
+            elif intent_score > 0.6:
+                return "💬 Interested"
+            else:
+                return "📊 Browsing"
+        
+        else:
+            if intent_score > 0.8:
+                return "👑 VIP Customer"
+            elif intent_score > 0.6:
+                return "🤝 Regular Customer"
+            else:
+                return "💼 Returning"
+    
+    def detect_urgency_modifiers(self, text):
+        """
+        Detect urgent language patterns
+        Returns urgency score 0-10
+        """
+        text_lower = text.lower()
+        
+        urgent_words = {
+            'extreme': ['asap', 'urgent', 'emergency', 'immediately', 'right now', 'hurry'],
+            'high': ['today', 'now', 'soon', 'quick', 'fast'],
+            'medium': ['tomorrow', 'this week', 'this weekend'],
+            'low': ['eventually', 'whenever', 'no rush']
+        }
+        
+        urgency = 0
+        
+        for level, words in urgent_words.items():
+            if any(word in text_lower for word in words):
+                if level == 'extreme':
+                    urgency += 10
+                elif level == 'high':
+                    urgency += 7
+                elif level == 'medium':
+                    urgency += 4
+                elif level == 'low':
+                    urgency += 1
+        
+        return min(urgency, 10)
