@@ -570,11 +570,11 @@ elif page == "📊 Daily Analysis":
                         # Segment badge with styling
                         segment_map = {
                             'Hot Lead': '🔥 Hot Lead',
-                            'Warm Lead': '🌡️ Warm Lead',
+                            'Warm Lead': '✨ Warm Lead',
                             'VIP': '👑 VIP',
-                            'Engaged Buyer': '💬 Engaged',
-                            'New Prospect': '🆕 New',
-                            'Browsing': '👀 Browse'
+                            'Engaged Buyer': '🎯 Engaged',
+                            'New Prospect': '📋 New',
+                            'Browsing': '💼 Returning'
                         }
                         segment_badge = segment_map.get(r['customer_segment'], r['customer_segment'])
                         
@@ -679,23 +679,18 @@ elif page == "📊 Daily Analysis":
                             fig, ax = plt.subplots(figsize=(8, 5))
                             # Updated colors matching new scheme
                             segment_color_map = {
-                                '🔥 Hot Lead': '#ff4444',           # Red - urgent
+                                '🔥 Hot Lead': '#ff4444',           # Red
                                 'Hot Lead': '#ff4444',
-                                '✨ Warm Lead': '#ffbb33',          # Orange - warm
+                                '✨ Warm Lead': '#ffbb33',          # Orange
                                 'Warm Lead': '#ffbb33',
-                                '👑 VIP': '#9C27B0',                # Purple - valued
+                                '👑 VIP': '#9C27B0',                # Purple
                                 'VIP': '#9C27B0',
-                                '🎯 Engaged Buyer': '#2196F3',      # Blue - active
+                                '🎯 Engaged': '#2196F3',            # Blue
                                 'Engaged Buyer': '#2196F3',
-                                '💬 Interested': '#2196F3',
-                                'Interested': '#2196F3',
-                                '🆕 New Prospect': '#FF9800',       # Orange - new
+                                '📋 New': '#FF9800',                # Orange - first-time visitor
                                 'New Prospect': '#FF9800',
-                                '👀 Browsing': '#95a5a6',           # Gray - browsing
-                                'Browsing': '#95a5a6',
-                                '🤝 Regular Customer': '#3498db',   # Light blue
-                                'Regular Customer': '#3498db',
-                                'Returning': '#757575'              # Dark gray - low interest
+                                '💼 Returning': '#757575',          # Dark gray
+                                'Browsing': '#757575'
                             }
                             segments = list(segment_counts.keys())
                             counts = list(segment_counts.values())
@@ -781,11 +776,11 @@ elif page == "🚨 Priority Alerts":
                         # Segment badge
                         segment_map = {
                             'Hot Lead': '🔥 Hot Lead',
-                            'Warm Lead': '🌡️ Warm Lead',
+                            'Warm Lead': '✨ Warm Lead',
                             'VIP': '👑 VIP',
-                            'Engaged Buyer': '💬 Engaged',
-                            'New Prospect': '🆕 New',
-                            'Browsing': '👀 Browse'
+                            'Engaged Buyer': '🎯 Engaged',
+                            'New Prospect': '📋 New',
+                            'Browsing': '💼 Returning'
                         }
                         segment_display = segment_map.get(p['customer_segment'], p['customer_segment'])
                         st.write(f"**Segment:** {segment_display}")
@@ -949,23 +944,18 @@ elif page == "📈 Statistics":
                 fig, ax = plt.subplots(figsize=(8, 6))
                 # Updated segment colors to match new scheme
                 segment_color_map = {
-                    '🔥 Hot Lead': '#ff4444',              # Red - new + very high intent
+                    '🔥 Hot Lead': '#ff4444',              # Red
                     'Hot Lead': '#ff4444',
-                    '✨ Warm Lead': '#ffbb33',             # Orange - new + medium intent
+                    '✨ Warm Lead': '#ffbb33',             # Orange
                     'Warm Lead': '#ffbb33',
-                    '👑 VIP': '#9C27B0',                   # Purple - returning + high intent
+                    '👑 VIP': '#9C27B0',                   # Purple
                     'VIP': '#9C27B0',
-                    '🎯 Engaged Buyer': '#2196F3',         # Blue - returning + active
+                    '🎯 Engaged': '#2196F3',               # Blue
                     'Engaged Buyer': '#2196F3',
-                    '💬 Interested': '#2196F3',
-                    'Interested': '#2196F3',
-                    '🆕 New Prospect': '#FF9800',          # Orange - first-time visitor
+                    '📋 New': '#FF9800',                   # Orange - first-time visitor
                     'New Prospect': '#FF9800',
-                    '👀 Browsing': '#95a5a6',              # Gray - browsing
-                    'Browsing': '#95a5a6',
-                    '🤝 Regular Customer': '#3498db',      # Light Blue
-                    'Regular Customer': '#3498db',
-                    'Returning': '#757575'                 # Dark Gray - returning + low interest
+                    '💼 Returning': '#757575',             # Dark gray
+                    'Browsing': '#757575'
                 }
                 colors = [segment_color_map.get(s, '#bdc3c7') for s in segment_counts.keys()]
                 ax.barh(list(segment_counts.keys()), list(segment_counts.values()), color=colors)
