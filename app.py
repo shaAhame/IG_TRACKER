@@ -656,9 +656,17 @@ elif page == "📊 Daily Analysis":
                         if sentiment_counts:
                             import matplotlib.pyplot as plt
                             fig, ax = plt.subplots(figsize=(8, 5))
-                            ax.pie(sentiment_counts.values(), labels=sentiment_counts.keys(), autopct='%1.1f%%', 
-                                   colors=['#4CAF50', '#ff4444', '#9E9E9E'])
-                            ax.set_title("Sentiment Distribution")
+                            # Updated colors: Positive=Green, Negative=Red, Neutral=Blue
+                            sentiment_color_map = {
+                                'Positive': '#2ecc71',      # Green
+                                'Very Positive': '#27ae60', # Dark Green
+                                'Negative': '#e74c3c',      # Red
+                                'Very Negative': '#c0392b', # Dark Red
+                                'Neutral': '#3498db'        # Blue
+                            }
+                            colors = [sentiment_color_map.get(s, '#95a5a6') for s in sentiment_counts.keys()]
+                            ax.pie(sentiment_counts.values(), labels=sentiment_counts.keys(), autopct='%1.1f%%', colors=colors)
+                            ax.set_title("Sentiment Distribution", fontweight='bold', fontsize=12)
                             st.pyplot(fig)
                     
                     with col2:
@@ -669,11 +677,32 @@ elif page == "📊 Daily Analysis":
                         
                         if segment_counts:
                             fig, ax = plt.subplots(figsize=(8, 5))
+                            # Updated colors matching new scheme
+                            segment_color_map = {
+                                '🔥 Hot Lead': '#ff4444',           # Red - urgent
+                                'Hot Lead': '#ff4444',
+                                '✨ Warm Lead': '#ffbb33',          # Orange - warm
+                                'Warm Lead': '#ffbb33',
+                                '👑 VIP': '#9C27B0',                # Purple - valued
+                                'VIP': '#9C27B0',
+                                '🎯 Engaged Buyer': '#2196F3',      # Blue - active
+                                'Engaged Buyer': '#2196F3',
+                                '💬 Interested': '#2196F3',
+                                'Interested': '#2196F3',
+                                '🆕 New Prospect': '#FF9800',       # Orange - new
+                                'New Prospect': '#FF9800',
+                                '👀 Browsing': '#95a5a6',           # Gray - browsing
+                                'Browsing': '#95a5a6',
+                                '🤝 Regular Customer': '#3498db',   # Light blue
+                                'Regular Customer': '#3498db',
+                                'Returning': '#757575'              # Dark gray - low interest
+                            }
                             segments = list(segment_counts.keys())
                             counts = list(segment_counts.values())
-                            ax.barh(segments, counts, color=['#ff4444', '#ffbb33', '#4CAF50', '#2196F3', '#9C27B0', '#FF9800'])
-                            ax.set_xlabel("Number of Customers")
-                            ax.set_title("Customer Segment Distribution")
+                            colors = [segment_color_map.get(s, '#bdc3c7') for s in segments]
+                            ax.barh(segments, counts, color=colors)
+                            ax.set_xlabel("Number of Customers", fontweight='bold')
+                            ax.set_title("Customer Segment Distribution", fontweight='bold', fontsize=12)
                             st.pyplot(fig)
                     
                     # Hot Leads Indicator
@@ -873,10 +902,17 @@ elif page == "📈 Statistics":
             if sentiment_counts:
                 import matplotlib.pyplot as plt
                 fig, ax = plt.subplots(figsize=(8, 6))
-                colors_map = {'Positive': '#4CAF50', 'Negative': '#ff4444', 'Neutral': '#9E9E9E'}
-                colors = [colors_map.get(s, '#9E9E9E') for s in sentiment_counts.keys()]
+                # Updated sentiment colors: Green (positive), Red (negative), Blue (neutral)
+                sentiment_color_map = {
+                    'Positive': '#2ecc71',      # Green - customer happy
+                    'Very Positive': '#27ae60', # Dark Green - very happy
+                    'Negative': '#e74c3c',      # Red - customer unhappy
+                    'Very Negative': '#c0392b', # Dark Red - very unhappy
+                    'Neutral': '#3498db'        # Blue - factual questions
+                }
+                colors = [sentiment_color_map.get(s, '#95a5a6') for s in sentiment_counts.keys()]
                 ax.pie(sentiment_counts.values(), labels=sentiment_counts.keys(), autopct='%1.1f%%', colors=colors)
-                ax.set_title("Customer Sentiment Distribution")
+                ax.set_title("Customer Sentiment Distribution", fontweight='bold', fontsize=12)
                 st.pyplot(fig)
         
         with col2:
@@ -911,18 +947,30 @@ elif page == "📈 Statistics":
             if segment_counts:
                 import matplotlib.pyplot as plt
                 fig, ax = plt.subplots(figsize=(8, 6))
-                segment_colors = {
+                # Updated segment colors to match new scheme
+                segment_color_map = {
+                    '🔥 Hot Lead': '#ff4444',              # Red - new + very high intent
                     'Hot Lead': '#ff4444',
+                    '✨ Warm Lead': '#ffbb33',             # Orange - new + medium intent
                     'Warm Lead': '#ffbb33',
-                    'VIP': '#FFD700',
+                    '👑 VIP': '#9C27B0',                   # Purple - returning + high intent
+                    'VIP': '#9C27B0',
+                    '🎯 Engaged Buyer': '#2196F3',         # Blue - returning + active
                     'Engaged Buyer': '#2196F3',
-                    'New Prospect': '#9C27B0',
-                    'Browsing': '#FF9800'
+                    '💬 Interested': '#2196F3',
+                    'Interested': '#2196F3',
+                    '🆕 New Prospect': '#FF9800',          # Orange - first-time visitor
+                    'New Prospect': '#FF9800',
+                    '👀 Browsing': '#95a5a6',              # Gray - browsing
+                    'Browsing': '#95a5a6',
+                    '🤝 Regular Customer': '#3498db',      # Light Blue
+                    'Regular Customer': '#3498db',
+                    'Returning': '#757575'                 # Dark Gray - returning + low interest
                 }
-                colors = [segment_colors.get(s, '#9E9E9E') for s in segment_counts.keys()]
+                colors = [segment_color_map.get(s, '#bdc3c7') for s in segment_counts.keys()]
                 ax.barh(list(segment_counts.keys()), list(segment_counts.values()), color=colors)
-                ax.set_xlabel("Number of Customers")
-                ax.set_title("Customer Segments")
+                ax.set_xlabel("Number of Customers", fontweight='bold')
+                ax.set_title("Customer Segments", fontweight='bold', fontsize=12)
                 st.pyplot(fig)
         
         with col2:
