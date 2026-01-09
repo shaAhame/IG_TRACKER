@@ -10,11 +10,20 @@ import config
 class DailyAnalyzer:
     def __init__(self):
         print("🚀 Instagram Message Analyzer Starting...\n")
+        print("📦 Initializing AI-Enhanced Analysis System...\n")
         config.setup_directories()
+        
+        # Initialize all analyzers (they load AI models automatically)
+        print("Loading Product Detector...")
         self.product_detector = ProductDetector()
+        
+        print("Loading Question Analyzer...")
         self.question_analyzer = QuestionAnalyzer()
+        
+        print("Loading Sentiment Analyzer...")
         self.sentiment_analyzer = SentimentAnalyzer()
-        print("✅ System ready!\n")
+        
+        print("✅ All systems ready! (Hybrid AI + Rule-Based Analysis Active)\n")
     
     def analyze_today(self, excel_file=None):
         if excel_file is None:

@@ -4,10 +4,16 @@ import re
 class SentimentAnalyzer:
     """
     Analyzes message sentiment and emotional signals
-    to better understand customer satisfaction and urgency
+    to better understand customer satisfaction and urgency.
+    
+    Uses hybrid approach:
+    - Rule-based keyword matching (fast, reliable)
+    - Optional Free AI model (distilbert) for enhanced accuracy
     """
     
     def __init__(self):
+        self.use_ai = False
+        self.ai_model = None
         self.positive_words = {
             # English
             'love': 2, 'amazing': 2, 'great': 1.5, 'awesome': 2, 'perfect': 2,
@@ -54,6 +60,26 @@ class SentimentAnalyzer:
             'considering', 'not sure', 'unsure', 'i will think',
             'let me think', 'need time', 'ඉතින්', 'බලා ගමි'
         ]
+        
+        # Try to load free AI model (optional)
+        self._load_ai_model()
+    
+    def _load_ai_model(self):
+        """Load free distilbert sentiment model (optional enhancement)"""
+        try:
+            from transformers import pipeline
+            print("⚙️  Loading free AI sentiment model (distilbert)...")
+            self.ai_model = pipeline(
+                "sentiment-analysis",
+                model="distilbert-base-uncased-finetuned-sst-2-english",
+                device=-1  # Use CPU
+            )
+            self.use_ai = True
+            print("✅ AI model loaded! Sentiment analysis enhanced.\n")
+        except Exception as e:
+            print(f"⚠️  AI model unavailable (using rule-based only): {e}\n")
+            self.use_ai = False
+            self.ai_model = None
     
     def analyze(self, text):
         """
@@ -84,30 +110,76 @@ class SentimentAnalyzer:
         }
     
     def _calculate_sentiment(self, text_lower):
-        """Calculate sentiment from positive/negative words"""
+        """
+        Calculate sentiment using hybrid approach:
+        1. Try AI model first (if available) for nuanced understanding
+        2. Fall back to rule-based keyword matching
+        """
         
-        pos_score = sum(weight for word, weight in self.positive_words.items() 
-                       if word in text_lower)
-        neg_score = sum(weight for word, weight in self.negative_words.items() 
-                       if word in text_lower)
+        # Try AI model first (free distilbert)
+        if self.use_ai and self.ai_model:
+            try:
+                # Truncate to 512 tokens for model
+                text_short = text_lower[:500]
+                result = self.ai_model(text_short)[0]
+                ai_label = result['label']  # POSITIVE or NEGATIVE
+                ai_score = result['score']  # 0-1 confidence
+                
+                # Convert AI output to our scale (-10 to 10)
+                if ai_label == 'POSITIVE':
+                    ai_sentiment_score = ai_score * 10
+                    ai_sentiment = "Positive" if ai_score > 0.7 else "Neutral"
+                else:
+                    ai_sentiment_score = -ai_score * 10
+                    ai_sentiment = "Negative" if ai_score > 0.7 else "Neutral"
+                
+                # Combine with keyword-based score for better accuracy
+                keyword_score = self._calculate_keyword_sentiment(text_lower)
+                
+                # Weighted average: 70% AI, 30% Keywords (keywords good for domain-specific terms)
+                combined_score = (ai_sentiment_score * 0.7) + (keyword_score * 0.3)
+                
+                if combined_score > 3:
+                    sentiment = "Very Positive"
+                elif combined_score > 0:
+                    sentiment = "Positive"
+                elif combined_score < -3:
+                    sentiment = "Very Negative"
+                elif combined_score < 0:
+                    sentiment = "Negative"
+                else:
+                    sentiment = "Neutral"
+                
+                return sentiment, max(-10, min(10, combined_score))
+            
+            except Exception as e:
+                # Fallback to keyword-based if AI fails
+                print(f"  ⚠️  AI sentiment failed: {e}, using keywords")
+                pass
         
-        net_score = pos_score - neg_score
+        # Keyword-based sentiment (reliable fallback)
+        keyword_score = self._calculate_keyword_sentiment(text_lower)
         
-        if net_score > 3:
+        if keyword_score > 3:
             sentiment = "Very Positive"
-        elif net_score > 0:
+        elif keyword_score > 0:
             sentiment = "Positive"
-        elif net_score < -3:
+        elif keyword_score < -3:
             sentiment = "Very Negative"
-        elif net_score < 0:
+        elif keyword_score < 0:
             sentiment = "Negative"
         else:
             sentiment = "Neutral"
         
-        # Normalize to -10 to 10
-        sentiment_score = max(-10, min(10, net_score))
-        
-        return sentiment, sentiment_score
+        return sentiment, max(-10, min(10, keyword_score))
+    
+    def _calculate_keyword_sentiment(self, text_lower):
+        """Calculate sentiment score from keyword matching"""
+        pos_score = sum(weight for word, weight in self.positive_words.items() 
+                       if word in text_lower)
+        neg_score = sum(weight for word, weight in self.negative_words.items() 
+                       if word in text_lower)
+        return pos_score - neg_score
     
     def _calculate_urgency(self, text_lower):
         """Calculate urgency level"""

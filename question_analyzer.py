@@ -2,6 +2,10 @@
 
 class QuestionAnalyzer:
     def __init__(self):
+        self.use_ai = False
+        self.ai_model = None
+        self.question_types = ['Price', 'Availability', 'Payment Methods', 'Warranty', 'Delivery', 'Colors', 'Specs']
+        
         self.patterns = {
             'Price': {
                 'keywords': [
@@ -146,21 +150,82 @@ class QuestionAnalyzer:
                 'urgency': 'low'
             },
         }
+        
+        # Try to load free AI model (optional enhancement)
+        self._load_ai_model()
+    
+    def _load_ai_model(self):
+        """Load free zero-shot classification model for question intent detection"""
+        try:
+            from transformers import pipeline
+            print("⚙️  Loading free AI question detection model (zero-shot)...")
+            self.ai_model = pipeline(
+                "zero-shot-classification",
+                model="facebook/bart-large-mnli",
+                device=-1  # Use CPU
+            )
+            self.use_ai = True
+            print("✅ AI question detection model loaded!\n")
+        except Exception as e:
+            print(f"⚠️  AI question model unavailable (using rule-based only): {e}\n")
+            self.use_ai = False
+            self.ai_model = None
     
     def analyze_questions(self, text):
         text_lower = text.lower()
         detected = []
         
+        # Try AI model first (if available)
+        if self.use_ai and self.ai_model:
+            try:
+                ai_questions = self._analyze_questions_ai(text)
+                detected.extend(ai_questions)
+            except Exception as e:
+                print(f"  ⚠️  AI question detection failed: {e}, using keywords")
+                pass
+        
+        # Rule-based detection (always run as fallback)
         for q_type, data in self.patterns.items():
             if any(kw in text_lower for kw in data['keywords']):
-                detected.append({
-                    'type': q_type,
-                    'priority': data['priority'],
-                    'urgency': data['urgency']
-                })
+                # Avoid duplicates from AI
+                if not any(q['type'] == q_type for q in detected):
+                    detected.append({
+                        'type': q_type,
+                        'priority': data['priority'],
+                        'urgency': data['urgency'],
+                        'source': 'keyword'
+                    })
         
         detected.sort(key=lambda x: x['priority'])
-        return detected if detected else [{'type': 'General Inquiry', 'priority': 99, 'urgency': 'low'}]
+        return detected if detected else [{'type': 'General Inquiry', 'priority': 99, 'urgency': 'low', 'source': 'fallback'}]
+    
+    def _analyze_questions_ai(self, text):
+        """Detect question types using zero-shot classification (AI-powered)"""
+        try:
+            results = []
+            text_short = text[:300]  # Limit text length
+            
+            # Use zero-shot classification to find question types
+            predictions = self.ai_model(text_short, self.question_types, multi_class=True)
+            
+            # Process top predictions
+            for i, (label, score) in enumerate(zip(predictions['labels'][:2], predictions['scores'][:2])):
+                if score > 0.5:  # Only if confident
+                    # Map to our question types
+                    q_type = label
+                    priority = 3 if score > 0.7 else 4
+                    urgency = 'medium' if score > 0.7 else 'low'
+                    
+                    results.append({
+                        'type': q_type,
+                        'priority': priority,
+                        'urgency': urgency,
+                        'source': 'ai'
+                    })
+            
+            return results
+        except Exception:
+            return []
     
     def get_primary_question(self, questions):
         return questions[0]['type'] if questions else 'General Inquiry'

@@ -3,6 +3,10 @@ import re
 
 class ProductDetector:
     def __init__(self):
+        self.use_ai = False
+        self.ai_model = None
+        self.product_categories = ['iPhone', 'iPad', 'MacBook', 'Samsung Galaxy', 'Redmi', 'Apple Watch', 'Google Pixel', 'OnePlus', 'Sony']
+        
         self.products = {
             # === APPLE PRODUCTS ===
             'iPhone': {
@@ -286,6 +290,26 @@ class ProductDetector:
                 'oppo': ['oppo'],
             }
         }
+        
+        # Try to load free AI model (optional enhancement)
+        self._load_ai_model()
+    
+    def _load_ai_model(self):
+        """Load free zero-shot classification model for product detection"""
+        try:
+            from transformers import pipeline
+            print("⚙️  Loading free AI product detection model (zero-shot)...")
+            self.ai_model = pipeline(
+                "zero-shot-classification",
+                model="facebook/bart-large-mnli",
+                device=-1  # Use CPU
+            )
+            self.use_ai = True
+            print("✅ AI product detection model loaded!\n")
+        except Exception as e:
+            print(f"⚠️  AI product model unavailable (using rule-based only): {e}\n")
+            self.use_ai = False
+            self.ai_model = None
     
     def detect_products(self, text, post_product=""):
         detected = []
@@ -299,6 +323,17 @@ class ProductDetector:
             })
         
         text_lower = text.lower()
+        
+        # Try AI model first (if available)
+        if self.use_ai and self.ai_model:
+            try:
+                ai_products = self._detect_products_ai(text)
+                detected.extend(ai_products)
+            except Exception as e:
+                print(f"  ⚠️  AI product detection failed: {e}, using keywords")
+                pass
+        
+        # Rule-based detection (always run as fallback)
         for category, models in self.products.items():
             for model_name, patterns in models.items():
                 for pattern in patterns:
@@ -318,6 +353,31 @@ class ProductDetector:
                         break
         
         return detected if detected else [{'product': 'Not specified', 'category': 'Unknown', 'confidence': 'none', 'source': 'none'}]
+    
+    def _detect_products_ai(self, text):
+        """Detect products using zero-shot classification (AI-powered)"""
+        try:
+            results = []
+            text_short = text[:300]  # Limit text length
+            
+            # Use zero-shot classification to find product mentions
+            predictions = self.ai_model(text_short, self.product_categories, multi_class=False)
+            
+            for result in predictions:
+                category = result['labels'][0]  # Top predicted category
+                score = result['scores'][0]  # Confidence score
+                
+                if score > 0.5:  # Only if confident
+                    results.append({
+                        'product': category,
+                        'category': category,
+                        'confidence': 'medium' if score > 0.7 else 'low',
+                        'source': 'ai'
+                    })
+            
+            return results
+        except Exception:
+            return []
     
     def _match(self, pattern, text):
         return bool(re.search(r'\b' + re.escape(pattern) + r'\b', text, re.IGNORECASE))

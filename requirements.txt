@@ -3,3 +3,6 @@ openpyxl
 python-dotenv
 streamlit
 matplotlib
+transformers
+torch
+scipy
