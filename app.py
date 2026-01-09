@@ -21,15 +21,25 @@ st.set_page_config(
 # Custom CSS styling
 st.markdown("""
 <style>
+    /* General font and layout tweaks for friendlier UI */
+    body, .stApp {
+        font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        color: #222222;
+    }
     .main-header {
-        font-size: 3rem;
-        font-weight: bold;
-        text-align: center;
-        color: #1f77b4;
-        margin-bottom: 2rem;
+        font-size: 2.4rem;
+        font-weight: 700;
+        text-align: left;
+        color: #0052cc;
+        margin: 0.2rem 0 0.6rem 0;
+    }
+    .sub-header {
+        color: #555555;
+        margin-top: -6px;
+        margin-bottom: 12px;
     }
     .metric-card {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #0891b2 0%, #0369a1 100%);
         padding: 1rem;
         border-radius: 10px;
         color: white;
@@ -51,7 +61,7 @@ st.markdown("""
         margin: 0.5rem 0;
     }
     .sentiment-positive {
-        background-color: #4CAF50;
+        background-color: #2ecc71;
         color: white;
         padding: 0.3rem 0.6rem;
         border-radius: 3px;
@@ -59,7 +69,7 @@ st.markdown("""
         font-size: 0.9rem;
     }
     .sentiment-negative {
-        background-color: #f44336;
+        background-color: #e74c3c;
         color: white;
         padding: 0.3rem 0.6rem;
         border-radius: 3px;
@@ -67,7 +77,7 @@ st.markdown("""
         font-size: 0.9rem;
     }
     .sentiment-neutral {
-        background-color: #2196F3;
+        background-color: #3498db;
         color: white;
         padding: 0.3rem 0.6rem;
         border-radius: 3px;
@@ -117,6 +127,19 @@ st.markdown("""
     }
     .stButton>button {
         width: 100%;
+        background-color: #0052cc;
+        color: white;
+        border-radius: 8px;
+        padding: 8px 12px;
+    }
+    /* Small colored badge used for legends */
+    .legend-badge {
+        display:inline-block;
+        width:12px;
+        height:12px;
+        border-radius:3px;
+        margin-right:6px;
+        vertical-align:middle;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -139,7 +162,12 @@ product_detector, question_analyzer, sentiment_analyzer = load_analyzers()
 
 # Sidebar
 with st.sidebar:
-    st.image("https://img.icons8.com/fluency/96/instagram-new.png", width=80)
+    # Show local logo if available, otherwise fallback to a compact Instagram icon
+    logo_path = os.path.join(os.getcwd(), "logo.png")
+    if os.path.exists(logo_path):
+        st.image(logo_path, width=120)
+    else:
+        st.image("https://img.icons8.com/fluency/96/instagram-new.png", width=80)
     st.title("📊 Dashboard")
     st.markdown("---")
     
@@ -168,13 +196,22 @@ with st.sidebar:
     )
     
     st.markdown("---")
-    st.caption("Made with IDealz Lanka (PVT) Ltd 🇱🇰")
+    st.caption("Made with Idealz Lanka (PVT) Ltd 🇱🇰")
 
 # ============================================
 # HOME PAGE
 # ============================================
 if page == "🏠 Home":
-    st.markdown('<h1 class="main-header">📱 Instagram Message Analyzer</h1>', unsafe_allow_html=True)
+    # Friendly header with logo (local `logo.png` if available)
+    logo_path = os.path.join(os.getcwd(), "logo.png")
+    col1, col2 = st.columns([1, 4])
+    with col1:
+        if os.path.exists(logo_path):
+            st.image(logo_path, width=96)
+        else:
+            st.image("https://img.icons8.com/fluency/96/instagram-new.png", width=72)
+    with col2:
+        st.markdown('<div><h1 class="main-header">Instagram Message Analyzer</h1><div class="sub-header">Smart Instagram message triage for small teams</div></div>', unsafe_allow_html=True)
     
     if uploaded_file is None:
         st.info("👈 Upload your Excel file from the sidebar to get started!")
@@ -439,6 +476,15 @@ elif page == "📊 Daily Analysis":
                     
                     # Display results
                     st.markdown("### 📊 Analysis Results")
+                    # Small sentiment legend for clarity
+                    st.markdown("""
+                    <div style='margin-bottom:8px;'>
+                        <span class='legend-badge' style='background:#2ecc71'></span> Positive &nbsp;&nbsp;
+                        <span class='legend-badge' style='background:#e74c3c'></span> Negative &nbsp;&nbsp;
+                        <span class='legend-badge' style='background:#3498db'></span> Neutral &nbsp;&nbsp;
+                        <span style='margin-left:18px; color:#555;'>| Intent color: 🔥 Very High / 🎯 High / ⚠️ Medium</span>
+                    </div>
+                    """, unsafe_allow_html=True)
                     
                     results_df = pd.DataFrame(results)
                     
@@ -1058,7 +1104,7 @@ st.markdown("---")
 st.markdown("""
 <div style='text-align: center; color: gray; padding: 20px;'>
     <strong>📱 Instagram Message Analyzer v1.0</strong><br>
-    Made with for Idealz Lanka PVT (Ltd) in Sri Lanka 🇱🇰<br>
+    Made for Idealz Lanka (PVT) Ltd in Sri Lanka 🇱🇰<br>
     <small>Analyze smarter, sell faster!</small>
 </div>
 """, unsafe_allow_html=True)
