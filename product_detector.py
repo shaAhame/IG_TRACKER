@@ -189,16 +189,51 @@ class ProductDetector:
                 # Xiaomi 12 Series
                 'xiaomi 12s ultra': ['12s ultra', 'xiaomi 12s ultra', 'mi 12s ultra'],
                 'xiaomi 12': ['xiaomi 12', '12', 'mi 12'],
+            },
+            
+            # === REDMI PHONES ===
+            'Redmi': {
+                # Redmi Note Series (Flagship Budget)
+                'redmi note 14 pro': ['redmi note 14 pro', 'note 14 pro', 'redmi note 14p'],
+                'redmi note 14 pro+': ['redmi note 14 pro+', 'note 14 pro+', 'redmi note 14 pro plus'],
+                'redmi note 14': ['redmi note 14', 'note 14'],
                 
-                # Redmi Note Series
-                'redmi note 14 pro': ['redmi note 14 pro', 'note 14 pro'],
-                'redmi note 13 pro': ['redmi note 13 pro', 'note 13 pro'],
+                'redmi note 13 pro': ['redmi note 13 pro', 'note 13 pro', 'redmi note 13p'],
+                'redmi note 13 pro+': ['redmi note 13 pro+', 'note 13 pro+', 'redmi note 13 pro plus'],
+                'redmi note 13': ['redmi note 13', 'note 13'],
+                
                 'redmi note 12 pro': ['redmi note 12 pro', 'note 12 pro'],
+                'redmi note 12 pro+': ['redmi note 12 pro+', 'note 12 pro plus'],
+                'redmi note 12': ['redmi note 12', 'note 12'],
+                
+                'redmi note 11 pro': ['redmi note 11 pro', 'note 11 pro'],
                 'redmi note 11': ['redmi note 11', 'note 11'],
                 
-                # Redmi Series
+                # Redmi Series (Mid-range)
+                'redmi 14': ['redmi 14'],
                 'redmi 13': ['redmi 13'],
                 'redmi 12': ['redmi 12'],
+                'redmi 11': ['redmi 11'],
+                'redmi 10': ['redmi 10'],
+                
+                # Redmi K Series (Performance)
+                'redmi k70': ['redmi k70', 'k70'],
+                'redmi k70 pro': ['redmi k70 pro', 'k70 pro'],
+                'redmi k60': ['redmi k60', 'k60'],
+                'redmi k60 pro': ['redmi k60 pro', 'k60 pro'],
+                'redmi k50': ['redmi k50', 'k50'],
+                'redmi k50 pro': ['redmi k50 pro', 'k50 pro'],
+                
+                # Redmi 9 Series (Budget)
+                'redmi 9': ['redmi 9'],
+                'redmi 9 pro': ['redmi 9 pro'],
+                
+                # Redmi A Series (Entry-level)
+                'redmi a3': ['redmi a3'],
+                'redmi a2': ['redmi a2'],
+                'redmi a1': ['redmi a1'],
+                'redmi a4': ['redmi a4'],
+                'redmi a5': ['redmi a5','A5', 'a 5', 'A-5','A5'],
             },
             
             # === GOOGLE PIXEL ===
@@ -229,11 +264,22 @@ class ProductDetector:
                 'honor 50': ['honor 50'],
             },
             
+            # === APPLE WATCH ===
+            'Apple Watch': {
+                'apple watch ultra 2': ['apple watch ultra 2', 'watch ultra 2', 'ultra 2'],
+                'apple watch ultra': ['apple watch ultra', 'watch ultra'],
+                'apple watch series 9': ['apple watch series 9', 'series 9', 'watch 9'],
+                'apple watch series 8': ['apple watch series 8', 'series 8', 'watch 8'],
+                'apple watch series 7': ['apple watch series 7', 'series 7', 'watch 7'],
+                'apple watch se 3': ['apple watch se 3', 'watch se 3', 'se 3'],
+                'apple watch se 2': ['apple watch se 2', 'watch se 2', 'se 2'],
+                'apple watch se': ['apple watch se', 'watch se'],
+            },
+            
             # === OTHER BRANDS ===
             'Other Devices': {
                 'airpods pro': ['airpods pro', 'airpods max'],
                 'airpods': ['airpods'],
-                'apple watch': ['apple watch'],
                 'samsung watch': ['samsung watch'],
                 'realme': ['realme'],
                 'vivo': ['vivo'],
