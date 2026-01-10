@@ -85,6 +85,35 @@ st.markdown("""
         font-weight: bold;
         font-size: 0.9rem;
     }
+    /* Make core text and container elements high-contrast */
+    .stApp, .stApp * {
+        color: #111111 !important;
+    }
+    .block-container {
+        background-color: #fffaf5 !important;
+        padding: 1rem 1.5rem !important;
+    }
+    .streamlit-expanderHeader, .st-expander {
+        background-color: #fff3e0 !important;
+        color: #111111 !important;
+        border-radius: 8px;
+    }
+    .stMetric, .stMetricLabel, .stMetricValue {
+        color: #111111 !important;
+    }
+    .stButton>button, .st-download-button>button {
+        background-color: #d9480f !important;
+        color: white !important;
+    }
+    .stDataFrame, .stTable {
+        background-color: #fffaf5 !important;
+        color: #111111 !important;
+    }
+    /* Make cards and legends stand out */
+    .priority-high, .priority-medium, .sentiment-positive, .sentiment-negative, .sentiment-neutral {
+        box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    }
+    .legend-badge { outline: 1px solid rgba(0,0,0,0.06); }
     .segment-badge {
         display: inline-block;
         padding: 0.4rem 0.8rem;
