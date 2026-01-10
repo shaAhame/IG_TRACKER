@@ -361,17 +361,19 @@ class ProductDetector:
             text_short = text[:300]  # Limit text length
             
             # Use zero-shot classification to find product mentions
+            # The pipeline returns a dict with 'labels' and 'scores'
             predictions = self.ai_model(text_short, self.product_categories, multi_class=False)
-            
-            for result in predictions:
-                category = result['labels'][0]  # Top predicted category
-                score = result['scores'][0]  # Confidence score
-                
-                if score > 0.5:  # Only if confident
+            labels = predictions.get('labels', []) if isinstance(predictions, dict) else []
+            scores = predictions.get('scores', []) if isinstance(predictions, dict) else []
+
+            if labels and scores:
+                top_label = labels[0]
+                top_score = scores[0]
+                if top_score > 0.5:  # Only if confident
                     results.append({
-                        'product': category,
-                        'category': category,
-                        'confidence': 'medium' if score > 0.7 else 'low',
+                        'product': top_label,
+                        'category': top_label,
+                        'confidence': 'medium' if top_score > 0.7 else 'low',
                         'source': 'ai'
                     })
             

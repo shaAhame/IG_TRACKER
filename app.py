@@ -311,41 +311,79 @@ elif page == "📊 Daily Analysis":
             # Load data
             df = pd.read_excel(uploaded_file)
             st.session_state.df = df
-            
+
             # Add processed column if missing
             if 'processed' not in df.columns:
                 df['processed'] = 'no'
                 st.info("ℹ️ Added 'processed' column to your data")
-            
+
             # Convert dates
             df['date'] = pd.to_datetime(df['date'], errors='coerce')
-            
-            # Filter new messages
-            new_messages = df[df['processed'] == 'no']
+
+            # Filter new messages (raw rows)
+            raw_new_messages = df[df['processed'] == 'no'].copy()
+
+            # Group messages by username + date (treat messages from same user on same day as one)
+            if len(raw_new_messages) > 0:
+                raw_new_messages['date_only'] = raw_new_messages['date'].dt.date
+                raw_new_messages = raw_new_messages.sort_values('date')
+                grouped = raw_new_messages.groupby(['username', 'date_only'])
+
+                # Build combined message entries (list of dicts) and keep original indices to mark processed later
+                combined_messages = []
+                rows_to_mark = []
+                for (username, date_only), group in grouped:
+                    combined_text = " \n".join(group['message'].astype(str).tolist())
+                    # prefer any non-empty post_product from the group
+                    if 'post_product' in group.columns:
+                        pp = [str(x).strip() for x in group['post_product'].fillna('') if str(x).strip()]
+                        combined_product = pp[0] if len(pp) > 0 else ''
+                    else:
+                        combined_product = ''
+
+                    combined_messages.append({
+                        'username': str(username),
+                        'message': combined_text,
+                        'post_product': combined_product,
+                        'date': group['date'].min(),
+                        'original_indices': group.index.tolist()
+                    })
+
+                    rows_to_mark.extend(group.index.tolist())
+            else:
+                combined_messages = []
+                rows_to_mark = []
             
             # Display stats
             col1, col2, col3 = st.columns(3)
-            
+
             with col1:
                 st.metric("📊 Total Messages", len(df))
             with col2:
-                st.metric("✅ Already Processed", len(df) - len(new_messages))
+                # already processed rows
+                st.metric("✅ Already Processed", len(df) - len(raw_new_messages))
             with col3:
-                st.metric("🆕 New to Analyze", len(new_messages), delta=len(new_messages))
+                # show grouped count (how many combined entries will be analyzed)
+                st.metric("🆕 New to Analyze", len(combined_messages), delta=len(raw_new_messages))
             
             st.markdown("---")
             
-            if len(new_messages) == 0:
+            if len(raw_new_messages) == 0:
                 st.success("✅ All messages are already processed!")
                 st.info("💡 Add new messages with processed='no' and upload the file again")
             else:
-                st.info(f"🆕 Found {len(new_messages)} new messages ready to analyze")
+                st.info(f"🆕 Found {len(combined_messages)} new messages ready to analyze")
                 
-                # Show preview of new messages
-                with st.expander("👁️ Preview New Messages"):
-                    preview_cols = ['username', 'message', 'date']
-                    available_cols = [col for col in preview_cols if col in new_messages.columns]
-                    preview_df = new_messages[available_cols].head(10)
+                # Show preview of new (grouped) messages
+                with st.expander("👁️ Preview New Messages (grouped by user & day)"):
+                    preview_rows = []
+                    for entry in combined_messages[:10]:
+                        preview_rows.append({
+                            'username': entry['username'],
+                            'message': entry['message'][:300],
+                            'date': entry['date']
+                        })
+                    preview_df = pd.DataFrame(preview_rows)
                     st.dataframe(preview_df, use_container_width=True)
                 
                 st.markdown("---")
@@ -359,41 +397,41 @@ elif page == "📊 Daily Analysis":
                     # Progress tracking
                     progress_bar = st.progress(0)
                     status_text = st.empty()
-                    
+
                     results = []
-                    
-                    # Process each new message
-                    for idx, (i, row) in enumerate(new_messages.iterrows()):
+
+                    # Process each grouped (combined) message
+                    for idx, entry in enumerate(combined_messages):
                         # Update progress
-                        progress = (idx + 1) / len(new_messages)
+                        progress = (idx + 1) / max(1, len(combined_messages))
                         progress_bar.progress(progress)
-                        status_text.text(f"Analyzing {idx + 1}/{len(new_messages)}: @{row['username']}")
-                        
+                        status_text.text(f"Analyzing {idx + 1}/{len(combined_messages)}: @{entry['username']}")
+
                         # Get message data
-                        username = str(row['username']).strip()
-                        message = str(row['message']).strip()
-                        post_product = str(row.get('post_product', '')).strip() if pd.notna(row.get('post_product')) else ''
-                        
+                        username = str(entry['username']).strip()
+                        message = str(entry['message']).strip()
+                        post_product = str(entry.get('post_product', '')).strip()
+
                         if not message or message == 'nan':
                             continue
-                        
-                        # Get conversation history
+
+                        # Get conversation history (only previously processed rows)
                         history_count = len(df[(df['username'] == username) & (df['processed'] == 'yes')])
-                        
+
                         # Detect products
                         products = product_detector.detect_products(message, post_product)
                         primary_product = product_detector.get_primary_product(products)
-                        
+
                         # Analyze questions
                         questions = question_analyzer.analyze_questions(message)
                         all_questions = question_analyzer.format_questions_list(questions)
-                        
+
                         # Sentiment analysis
                         sentiment_analysis = sentiment_analyzer.analyze(message)
-                        
+
                         # Urgency modifiers
                         urgency_modifier = question_analyzer.detect_urgency_modifiers(message)
-                        
+
                         # Intent signals
                         ready_to_buy = question_analyzer.is_ready_to_buy(message)
                         timeframe = question_analyzer.detect_timeframe(message)
@@ -464,10 +502,36 @@ elif page == "📊 Daily Analysis":
                     # Clear progress indicators
                     progress_bar.empty()
                     status_text.empty()
-                    
+
                     # Store results in session
                     st.session_state.results = results
                     st.session_state.analyzed = True
+
+                    # Mark original rows as processed
+                    try:
+                        if len(rows_to_mark) > 0:
+                            df.loc[rows_to_mark, 'processed'] = 'yes'
+                            st.session_state.df = df
+                    except Exception:
+                        # if marking fails, ignore but warn
+                        st.warning('Could not update processed flags in-memory; you can update the Excel manually if needed.')
+                    else:
+                        # Provide updated Excel for download (in-memory) so user can save changes
+                        try:
+                            from io import BytesIO
+                            buf = BytesIO()
+                            df.to_excel(buf, index=False)
+                            buf.seek(0)
+                            st.download_button(
+                                label="📥 Download Updated Excel",
+                                data=buf.getvalue(),
+                                file_name=f"instagram_conversations_updated_{date.today()}.xlsx",
+                                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                                key='download-updated-excel',
+                                use_container_width=True
+                            )
+                        except Exception:
+                            pass
                     
                     # Success message
                     st.success(f"✅ Successfully analyzed {len(results)} messages!")
