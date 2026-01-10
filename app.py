@@ -171,6 +171,85 @@ st.markdown("""
         margin-right:6px;
         vertical-align:middle;
     }
+
+    /* Sidebar specific styling for better contrast and pale warm theme */
+    section[data-testid='stSidebar'] {
+        background-color: #fff3e0 !important;
+        color: #111111 !important;
+        padding: 1rem !important;
+        border-right: 1px solid rgba(0,0,0,0.04);
+    }
+    section[data-testid='stSidebar'] * {
+        color: #111111 !important;
+    }
+    section[data-testid='stSidebar'] .stButton>button,
+    section[data-testid='stSidebar'] .st-download-button>button {
+        background-color: #fb923c !important;
+        color: white !important;
+        border-radius: 6px !important;
+    }
+    section[data-testid='stSidebar'] .stImage > img {
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    section[data-testid='stSidebar'] .stRadio > div, section[data-testid='stSidebar'] .stMetric {
+        background: transparent !important;
+    }
+
+</style>
+
+<!-- Additional UI fixes for file uploader and help page readability -->
+<style>
+    /* File uploader (browse) clarity */
+    section[data-testid='stSidebar'] .stFileUploader, section[data-testid='stSidebar'] input[type="file"] {
+        background-color: #fffaf0 !important;
+        border: 1px solid rgba(0,0,0,0.06) !important;
+        padding: 10px !important;
+        border-radius: 8px !important;
+        color: #111111 !important;
+    }
+    section[data-testid='stSidebar'] .stFileUploader button, section[data-testid='stSidebar'] .stFileUploader .css-1hsw8m0 {
+        background-color: #fb923c !important;
+        color: white !important;
+    }
+    /* Force uploader inner text/icons to be dark on pale background */
+    section[data-testid='stSidebar'] .stFileUploader * {
+        color: #111111 !important;
+    }
+    section[data-testid='stSidebar'] input[type="file"] {
+        color: #111111 !important;
+        background: #fffaf5 !important;
+    }
+    /* Webkit button inside file input */
+    section[data-testid='stSidebar'] input[type="file"]::-webkit-file-upload-button {
+        background: #fb923c !important;
+        color: #ffffff !important;
+        border: none !important;
+        padding: 6px 10px !important;
+        border-radius: 6px !important;
+        cursor: pointer !important;
+    }
+    /* Ensure file name / status text is readable */
+    section[data-testid='stSidebar'] .stFileUploader div, section[data-testid='stSidebar'] .stFileUploader p, section[data-testid='stSidebar'] .stFileUploader span {
+        color: #111111 !important;
+    }
+
+    /* Main block help page readability */
+    .block-container .stMarkdown, .block-container p, .block-container li, .block-container h1, .block-container h2, .block-container h3 {
+        color: #111111 !important;
+        line-height: 1.5 !important;
+    }
+    .block-container .stMarkdown code, .block-container pre, .block-container .code-block {
+        background: #fff3e0 !important;
+        color: #111111 !important;
+        padding: 6px !important;
+        border-radius: 6px !important;
+    }
+
+    /* Ensure help page headers are legible on pale background */
+    .block-container h1, .block-container h2, .block-container h3 {
+        color: #c2410c !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
