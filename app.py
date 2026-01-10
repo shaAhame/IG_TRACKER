@@ -21,31 +21,32 @@ st.set_page_config(
 # Custom CSS styling
 st.markdown("""
 <style>
-    /* General font and layout tweaks for friendlier UI */
+    /* General font and layout tweaks (warm theme) */
     body, .stApp {
         font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-        color: #222222;
+        color: #111111;
+        background-color: #fffaf5;
     }
     .main-header {
         font-size: 2.4rem;
         font-weight: 700;
         text-align: left;
-        color: #0052cc;
+        color: #d9480f; /* warm orange */
         margin: 0.2rem 0 0.6rem 0;
     }
     .sub-header {
-        color: #555555;
+        color: #7c4a00;
         margin-top: -6px;
         margin-bottom: 12px;
     }
     .metric-card {
-        background: linear-gradient(135deg, #0891b2 0%, #0369a1 100%);
+        background: linear-gradient(135deg, #ff7a00 0%, #ff4500 100%);
         padding: 1rem;
         border-radius: 10px;
         color: white;
     }
     .priority-high {
-        background-color: #ff4444;
+        background-color: #c53030;
         color: white;
         padding: 0.5rem;
         border-radius: 5px;
@@ -53,7 +54,7 @@ st.markdown("""
         margin: 0.5rem 0;
     }
     .priority-medium {
-        background-color: #ffbb33;
+        background-color: #f97316;
         color: white;
         padding: 0.5rem;
         border-radius: 5px;
@@ -61,7 +62,7 @@ st.markdown("""
         margin: 0.5rem 0;
     }
     .sentiment-positive {
-        background-color: #2ecc71;
+        background-color: #f59e0b;
         color: white;
         padding: 0.3rem 0.6rem;
         border-radius: 3px;
@@ -69,7 +70,7 @@ st.markdown("""
         font-size: 0.9rem;
     }
     .sentiment-negative {
-        background-color: #e74c3c;
+        background-color: #ef4444;
         color: white;
         padding: 0.3rem 0.6rem;
         border-radius: 3px;
@@ -77,7 +78,7 @@ st.markdown("""
         font-size: 0.9rem;
     }
     .sentiment-neutral {
-        background-color: #3498db;
+        background-color: #fb923c;
         color: white;
         padding: 0.3rem 0.6rem;
         border-radius: 3px;
@@ -93,11 +94,11 @@ st.markdown("""
         font-size: 0.85rem;
     }
     .hot-lead {
-        background-color: #ff4444;
+        background-color: #c53030;
         color: white;
     }
     .warm-lead {
-        background-color: #ffb74d;
+        background-color: #fb923c;
         color: white;
     }
     .vip-customer {
@@ -105,21 +106,21 @@ st.markdown("""
         color: white;
     }
     .urgency-extreme {
-        background-color: #ff1744;
+        background-color: #d72626;
         color: white;
         padding: 0.3rem 0.6rem;
         border-radius: 3px;
         font-weight: bold;
     }
     .urgency-high {
-        background-color: #ff9100;
+        background-color: #ff7a00;
         color: white;
         padding: 0.3rem 0.6rem;
         border-radius: 3px;
         font-weight: bold;
     }
     .urgency-medium {
-        background-color: #fbc02d;
+        background-color: #f97316;
         color: white;
         padding: 0.3rem 0.6rem;
         border-radius: 3px;
@@ -127,7 +128,7 @@ st.markdown("""
     }
     .stButton>button {
         width: 100%;
-        background-color: #0052cc;
+        background-color: #d9480f;
         color: white;
         border-radius: 8px;
         padding: 8px 12px;
