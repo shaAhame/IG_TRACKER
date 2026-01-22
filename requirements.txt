@@ -1,8 +1,9 @@
-pandas
-openpyxl
-python-dotenv
-streamlit
-matplotlib
-transformers
-torch
-scipy
+streamlit==1.29.0
+pandas==2.1.4
+openpyxl==3.1.5
+python-dotenv==1.0.1
+matplotlib==3.8.2
+scipy==1.11.4
+torch==2.1.2
+transformers==4.36.2
+altair==4.2.2
