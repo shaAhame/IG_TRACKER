@@ -1,11 +1,11 @@
-# daily_analyzer.py - MAIN SCRIPT
+
 # daily_analyzer.py - MAIN SCRIPT
 import pandas as pd
 import os
 from datetime import datetime, date
 from product_detector import ProductDetector
 from question_analyzer import QuestionAnalyzer
-from sentiment_analyzer import SentimentAnalyzer
+
 import config
 
 class DailyAnalyzer:
@@ -20,9 +20,6 @@ class DailyAnalyzer:
         
         print("Loading Question Analyzer...")
         self.question_analyzer = QuestionAnalyzer()
-        
-        print("Loading Sentiment Analyzer...")
-        self.sentiment_analyzer = SentimentAnalyzer()
         
         print("✅ All systems ready! (Hybrid AI + Rule-Based Analysis Active)\n")
     
@@ -102,7 +99,8 @@ class DailyAnalyzer:
                 'intent': analysis['intent'],
                 'intent_score': analysis['intent_score'],
                 'timeframe': analysis['timeframe'],
-                'ready': analysis['ready_to_buy']
+                'ready': analysis['ready_to_buy'],
+                'customer_segment': analysis['customer_segment']
             })
             
             stats['total'] += 1
@@ -140,9 +138,7 @@ class DailyAnalyzer:
         ready_to_buy = self.question_analyzer.is_ready_to_buy(text)
         timeframe = self.question_analyzer.detect_timeframe(text)
         
-        # Sentiment analysis
-        sentiment_analysis = self.sentiment_analyzer.analyze(text)
-        
+
         # Calculate intent with enhanced scoring
         score = 0.3
         urgent_q = sum(1 for q in questions if q['urgency'] == 'high')
@@ -154,12 +150,7 @@ class DailyAnalyzer:
         if history_count > 0:
             score += min(history_count * 0.05, 0.15)
         
-        # Boost score based on sentiment
-        if sentiment_analysis['sentiment'] in ['Very Positive', 'Positive']:
-            score += 0.1
-        elif sentiment_analysis['is_eager']:
-            score += 0.15
-        
+
         # Boost for urgency modifiers
         urgency_modifier = self.question_analyzer.detect_urgency_modifiers(text)
         score += min(urgency_modifier * 0.02, 0.2)
@@ -185,10 +176,7 @@ class DailyAnalyzer:
             'intent_score': f"{score:.0%}",
             'ready_to_buy': 'YES' if ready_to_buy else 'NO',
             'timeframe': timeframe,
-            'sentiment': sentiment_analysis['sentiment'],
             'customer_segment': customer_segment,
-            'is_eager': 'YES' if sentiment_analysis['is_eager'] else 'NO',
-            'has_doubts': 'YES' if sentiment_analysis['has_doubts'] else 'NO'
         }
     
     def _generate_reports(self, results, today, stats):

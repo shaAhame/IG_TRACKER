@@ -15,7 +15,7 @@ class QuestionAnalyzer:
                     'best price', 'bulk discount', 'wholesale',
                     # Sinhala
                     'කීයද', 'ගණන', 'මිල', 'නිසැ', 'වඩා', 'අඩු',
-                    'මිල අධිකයි', 'සිතුම්', 'දි'
+                    'මිල අධිකයි', 'සිතුම්', 'දි', 'price eka', 'gana', 'ganan', 'kiyad'
                 ],
                 'priority': 1,
                 'urgency': 'high'
@@ -28,7 +28,7 @@ class QuestionAnalyzer:
                     'how many', 'still have',
                     # Sinhala
                     'තියෙනවද', 'තියනවද', 'තිබේ', 'තිබේද', 'තිබුණ',
-                    'එක තිබේ', 'බරක තිබේ'
+                    'එක තිබේ', 'බරක තිබේ', 'thiyenawada', 'thiyeda', 'stock thiyenawada'
                 ],
                 'priority': 1,
                 'urgency': 'high'
@@ -40,7 +40,8 @@ class QuestionAnalyzer:
                     'cash', 'credit', 'debit', 'online payment', 'sslcommerz',
                     'dialog', 'warpin', 'payment plan',
                     # Sinhala
-                    'වාරික', 'ගෙවුම්', 'කර්ඩ්', 'මාසිකව', 'බැංකුවට'
+                    'වාරික', 'ගෙවුම්', 'කර්ඩ්', 'මාසිකව', 'බැංකුවට', 'gewanna puluwanda',
+                    'installment puluwanda'
                 ],
                 'priority': 2,
                 'urgency': 'medium'
@@ -158,16 +159,16 @@ class QuestionAnalyzer:
         """Load free zero-shot classification model for question intent detection"""
         try:
             from transformers import pipeline
-            print("⚙️  Loading free AI question detection model (zero-shot)...")
+            print("[INFO] Loading free AI question detection model (zero-shot)...")
             self.ai_model = pipeline(
                 "zero-shot-classification",
                 model="facebook/bart-large-mnli",
                 device=-1  # Use CPU
             )
             self.use_ai = True
-            print("✅ AI question detection model loaded!\n")
+            print("[SUCCESS] AI question detection model loaded!\n")
         except Exception as e:
-            print(f"⚠️  AI question model unavailable (using rule-based only): {e}\n")
+            print(f"[WARNING] AI question model unavailable (using rule-based only): {e}\n")
             self.use_ai = False
             self.ai_model = None
     
@@ -181,7 +182,7 @@ class QuestionAnalyzer:
                 ai_questions = self._analyze_questions_ai(text)
                 detected.extend(ai_questions)
             except Exception as e:
-                print(f"  ⚠️  AI question detection failed: {e}, using keywords")
+                print(f"  [WARNING] AI question detection failed: {e}, using keywords")
                 pass
         
         # Rule-based detection (always run as fallback)
@@ -249,7 +250,7 @@ class QuestionAnalyzer:
         keywords = [
             'i will come', 'coming', 'will buy', 'want to buy',
             'today', 'tomorrow', 'keep one', 'reserve',
-            'එනවා', 'ගන්නම්', 'අද', 'හෙට'
+            'එනවා', 'ගන්නම්', 'අද', 'හෙට', 'ennada', 'gemak'
         ]
         return any(kw in text_lower for kw in keywords)
     

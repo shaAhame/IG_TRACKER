@@ -8,7 +8,9 @@ from datetime import datetime, date
 import os
 from product_detector import ProductDetector
 from question_analyzer import QuestionAnalyzer
-from sentiment_analyzer import SentimentAnalyzer
+import styles
+import matplotlib.pyplot as plt
+
 
 # Page configuration
 st.set_page_config(
@@ -19,239 +21,7 @@ st.set_page_config(
 )
 
 # Custom CSS styling
-st.markdown("""
-<style>
-    /* General font and layout tweaks (warm theme) */
-    body, .stApp {
-        font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-        color: #111111;
-        background-color: #fffaf5;
-    }
-    .main-header {
-        font-size: 2.4rem;
-        font-weight: 700;
-        text-align: left;
-        color: #d9480f; /* warm orange */
-        margin: 0.2rem 0 0.6rem 0;
-    }
-    .sub-header {
-        color: #7c4a00;
-        margin-top: -6px;
-        margin-bottom: 12px;
-    }
-    .metric-card {
-        background: linear-gradient(135deg, #ff7a00 0%, #ff4500 100%);
-        padding: 1rem;
-        border-radius: 10px;
-        color: white;
-    }
-    .priority-high {
-        background-color: #c53030;
-        color: white;
-        padding: 0.5rem;
-        border-radius: 5px;
-        font-weight: bold;
-        margin: 0.5rem 0;
-    }
-    .priority-medium {
-        background-color: #f97316;
-        color: white;
-        padding: 0.5rem;
-        border-radius: 5px;
-        font-weight: bold;
-        margin: 0.5rem 0;
-    }
-    .sentiment-positive {
-        background-color: #f59e0b;
-        color: white;
-        padding: 0.3rem 0.6rem;
-        border-radius: 3px;
-        font-weight: bold;
-        font-size: 0.9rem;
-    }
-    .sentiment-negative {
-        background-color: #ef4444;
-        color: white;
-        padding: 0.3rem 0.6rem;
-        border-radius: 3px;
-        font-weight: bold;
-        font-size: 0.9rem;
-    }
-    .sentiment-neutral {
-        background-color: #fb923c;
-        color: white;
-        padding: 0.3rem 0.6rem;
-        border-radius: 3px;
-        font-weight: bold;
-        font-size: 0.9rem;
-    }
-    /* Make core text and container elements high-contrast */
-    .stApp, .stApp * {
-        color: #111111 !important;
-    }
-    .block-container {
-        background-color: #fffaf5 !important;
-        padding: 1rem 1.5rem !important;
-    }
-    .streamlit-expanderHeader, .st-expander {
-        background-color: #fff3e0 !important;
-        color: #111111 !important;
-        border-radius: 8px;
-    }
-    .stMetric, .stMetricLabel, .stMetricValue {
-        color: #111111 !important;
-    }
-    .stButton>button, .st-download-button>button {
-        background-color: #d9480f !important;
-        color: white !important;
-    }
-    .stDataFrame, .stTable {
-        background-color: #fffaf5 !important;
-        color: #111111 !important;
-    }
-    /* Make cards and legends stand out */
-    .priority-high, .priority-medium, .sentiment-positive, .sentiment-negative, .sentiment-neutral {
-        box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-    }
-    .legend-badge { outline: 1px solid rgba(0,0,0,0.06); }
-    .segment-badge {
-        display: inline-block;
-        padding: 0.4rem 0.8rem;
-        border-radius: 15px;
-        font-weight: bold;
-        margin: 0.2rem 0.2rem 0.2rem 0;
-        font-size: 0.85rem;
-    }
-    .hot-lead {
-        background-color: #c53030;
-        color: white;
-    }
-    .warm-lead {
-        background-color: #fb923c;
-        color: white;
-    }
-    .vip-customer {
-        background-color: #9c27b0;
-        color: white;
-    }
-    .urgency-extreme {
-        background-color: #d72626;
-        color: white;
-        padding: 0.3rem 0.6rem;
-        border-radius: 3px;
-        font-weight: bold;
-    }
-    .urgency-high {
-        background-color: #ff7a00;
-        color: white;
-        padding: 0.3rem 0.6rem;
-        border-radius: 3px;
-        font-weight: bold;
-    }
-    .urgency-medium {
-        background-color: #f97316;
-        color: white;
-        padding: 0.3rem 0.6rem;
-        border-radius: 3px;
-        font-weight: bold;
-    }
-    .stButton>button {
-        width: 100%;
-        background-color: #d9480f;
-        color: white;
-        border-radius: 8px;
-        padding: 8px 12px;
-    }
-    /* Small colored badge used for legends */
-    .legend-badge {
-        display:inline-block;
-        width:12px;
-        height:12px;
-        border-radius:3px;
-        margin-right:6px;
-        vertical-align:middle;
-    }
-
-    /* Sidebar specific styling for better contrast and pale warm theme */
-    section[data-testid='stSidebar'] {
-        background-color: #fff3e0 !important;
-        color: #111111 !important;
-        padding: 1rem !important;
-        border-right: 1px solid rgba(0,0,0,0.04);
-    }
-    section[data-testid='stSidebar'] * {
-        color: #111111 !important;
-    }
-    section[data-testid='stSidebar'] .stButton>button,
-    section[data-testid='stSidebar'] .st-download-button>button {
-        background-color: #fb923c !important;
-        color: white !important;
-        border-radius: 6px !important;
-    }
-    section[data-testid='stSidebar'] .stImage > img {
-        border-radius: 8px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-    }
-    section[data-testid='stSidebar'] .stRadio > div, section[data-testid='stSidebar'] .stMetric {
-        background: transparent !important;
-    }
-
-</style>
-
-<!-- Additional UI fixes for file uploader and help page readability -->
-<style>
-    /* File uploader (browse) clarity */
-    section[data-testid='stSidebar'] .stFileUploader, section[data-testid='stSidebar'] input[type="file"] {
-        background-color: #fffaf0 !important;
-        border: 1px solid rgba(0,0,0,0.06) !important;
-        padding: 10px !important;
-        border-radius: 8px !important;
-        color: #111111 !important;
-    }
-    section[data-testid='stSidebar'] .stFileUploader button, section[data-testid='stSidebar'] .stFileUploader .css-1hsw8m0 {
-        background-color: #fb923c !important;
-        color: white !important;
-    }
-    /* Force uploader inner text/icons to be dark on pale background */
-    section[data-testid='stSidebar'] .stFileUploader * {
-        color: #111111 !important;
-    }
-    section[data-testid='stSidebar'] input[type="file"] {
-        color: #111111 !important;
-        background: #fffaf5 !important;
-    }
-    /* Webkit button inside file input */
-    section[data-testid='stSidebar'] input[type="file"]::-webkit-file-upload-button {
-        background: #fb923c !important;
-        color: #ffffff !important;
-        border: none !important;
-        padding: 6px 10px !important;
-        border-radius: 6px !important;
-        cursor: pointer !important;
-    }
-    /* Ensure file name / status text is readable */
-    section[data-testid='stSidebar'] .stFileUploader div, section[data-testid='stSidebar'] .stFileUploader p, section[data-testid='stSidebar'] .stFileUploader span {
-        color: #111111 !important;
-    }
-
-    /* Main block help page readability */
-    .block-container .stMarkdown, .block-container p, .block-container li, .block-container h1, .block-container h2, .block-container h3 {
-        color: #111111 !important;
-        line-height: 1.5 !important;
-    }
-    .block-container .stMarkdown code, .block-container pre, .block-container .code-block {
-        background: #fff3e0 !important;
-        color: #111111 !important;
-        padding: 6px !important;
-        border-radius: 6px !important;
-    }
-
-    /* Ensure help page headers are legible on pale background */
-    .block-container h1, .block-container h2, .block-container h3 {
-        color: #c2410c !important;
-    }
-</style>
-""", unsafe_allow_html=True)
+st.markdown(styles.get_custom_css(), unsafe_allow_html=True)
 
 # Initialize session state
 if 'analyzed' not in st.session_state:
@@ -265,9 +35,9 @@ if 'df' not in st.session_state:
 @st.cache_resource
 def load_analyzers():
     """Load analyzers once and cache them"""
-    return ProductDetector(), QuestionAnalyzer(), SentimentAnalyzer()
+    return ProductDetector(), QuestionAnalyzer()
 
-product_detector, question_analyzer, sentiment_analyzer = load_analyzers()
+product_detector, question_analyzer = load_analyzers()
 
 # Sidebar
 with st.sidebar:
@@ -536,7 +306,7 @@ elif page == "📊 Daily Analysis":
                         all_questions = question_analyzer.format_questions_list(questions)
 
                         # Sentiment analysis
-                        sentiment_analysis = sentiment_analyzer.analyze(message)
+
 
                         # Urgency modifiers
                         urgency_modifier = question_analyzer.detect_urgency_modifiers(message)
@@ -558,12 +328,7 @@ elif page == "📊 Daily Analysis":
                         if history_count > 0:
                             score += min(history_count * 0.05, 0.15)
                         
-                        # Boost score based on sentiment
-                        if sentiment_analysis['sentiment'] in ['Very Positive', 'Positive']:
-                            score += 0.1
-                        elif sentiment_analysis['is_eager']:
-                            score += 0.15
-                        
+
                         # Boost for urgency modifiers
                         score += min(urgency_modifier * 0.02, 0.2)
                         
@@ -602,10 +367,7 @@ elif page == "📊 Daily Analysis":
                             'ready_to_buy': 'YES' if ready_to_buy else 'NO',
                             'stage': stage,
                             'message_number': history_count + 1,
-                            'sentiment': sentiment_analysis['sentiment'],
                             'customer_segment': customer_segment,
-                            'is_eager': 'YES' if sentiment_analysis['is_eager'] else 'NO',
-                            'has_doubts': 'YES' if sentiment_analysis['has_doubts'] else 'NO'
                         })
                     
                     # Clear progress indicators
@@ -655,27 +417,6 @@ elif page == "📊 Daily Analysis":
                     <div style='background:#f8f9fa; padding:12px; border-radius:8px; margin-bottom:16px;'>
                     <b>📌 Understanding the Analysis:</b><br>
                     <table style='width:100%; border-collapse:collapse;'>
-                    <tr style='border-bottom:1px solid #ddd;'>
-                        <td style='padding:8px;'><b>SENTIMENT</b> (Customer Mood)</td>
-                        <td style='padding:8px;'>
-                            <span style='background:#2ecc71; color:white; padding:2px 6px; border-radius:3px;'>😊 Positive</span>
-                            Customer is happy & satisfied
-                        </td>
-                    </tr>
-                    <tr style='border-bottom:1px solid #ddd;'>
-                        <td style='padding:8px;'></td>
-                        <td style='padding:8px;'>
-                            <span style='background:#e74c3c; color:white; padding:2px 6px; border-radius:3px;'>😟 Negative</span>
-                            Customer has concerns or complaints
-                        </td>
-                    </tr>
-                    <tr style='border-bottom:1px solid #ddd;'>
-                        <td style='padding:8px;'></td>
-                        <td style='padding:8px;'>
-                            <span style='background:#3498db; color:white; padding:2px 6px; border-radius:3px;'>😐 Neutral</span>
-                            Customer is asking factual questions
-                        </td>
-                    </tr>
                     <tr style='border-bottom:1px solid #ddd;'>
                         <td style='padding:8px;'><b>SEGMENT</b> (Customer Type)</td>
                         <td style='padding:8px;'>
@@ -737,9 +478,6 @@ elif page == "📊 Daily Analysis":
                     # Add visual badges
                     display_results = []
                     for r in results:
-                        # Sentiment badge
-                        sentiment_emoji = "😊" if r['sentiment'] == 'Positive' else "😟" if r['sentiment'] == 'Negative' else "😐"
-                        
                         # Segment badge with styling
                         segment_map = {
                             'Hot Lead': '🔥 Hot Lead',
@@ -760,10 +498,9 @@ elif page == "📊 Daily Analysis":
                             'Score': r['intent_score'],
                             'Timeframe': r['timeframe'],
                             'Stage': r['stage'],
-                            f'Sentiment {sentiment_emoji}': r['sentiment'],
+                            'Timeframe': r['timeframe'],
+                            'Stage': r['stage'],
                             'Segment': segment_badge,
-                            'Eager': r['is_eager'],
-                            'Doubts': r['has_doubts'],
                             'Ready': r['ready_to_buy']
                         })
                     
@@ -814,41 +551,6 @@ elif page == "📊 Daily Analysis":
                         low = len([r for r in results if r['intent'] == 'Low'])
                         st.metric("ℹ️ Low Intent", low)
                     
-                    # Sentiment and Segment Distribution
-                    st.markdown("---")
-                    st.markdown("### 😊 Sentiment & Customer Analysis")
-                    
-                    col1, col2 = st.columns(2)
-                    
-                    with col1:
-                        sentiment_counts = {}
-                        for r in results:
-                            sentiment = r['sentiment']
-                            sentiment_counts[sentiment] = sentiment_counts.get(sentiment, 0) + 1
-                        
-                        if sentiment_counts:
-                            import matplotlib.pyplot as plt
-                            import matplotlib.patches as mpatches
-                            fig, ax = plt.subplots(figsize=(8, 5))
-                            # Updated colors: Positive=warm green/orange accents
-                            sentiment_color_map = {
-                                'Positive': '#f59e0b',      # Amber (warm positive)
-                                'Very Positive': '#f97316', # Orange
-                                'Negative': '#ef4444',      # Red
-                                'Very Negative': '#c53030', # Dark Red
-                                'Neutral': '#6b7280'        # Gray-blue
-                            }
-                            labels = list(sentiment_counts.keys())
-                            sizes = list(sentiment_counts.values())
-                            colors = [sentiment_color_map.get(s, '#95a5a6') for s in labels]
-                            wedges, texts, autotexts = ax.pie(sizes, labels=None, autopct='%1.1f%%', colors=colors, textprops={'color':'#111111'})
-                            # Legend placed to the right for clarity
-                            ax.legend(wedges, labels, title="Sentiment", loc='center left', bbox_to_anchor=(1, 0, 0.4, 1))
-                            ax.axis('equal')
-                            ax.set_title("Sentiment Distribution", fontweight='bold', fontsize=12, color='#2b2b2b')
-                            fig.patch.set_facecolor('#fffaf5')
-                            fig.tight_layout()
-                            st.pyplot(fig)
                     
                     with col2:
                         segment_counts = {}
@@ -890,13 +592,8 @@ elif page == "📊 Daily Analysis":
                     # Hot Leads Indicator
                     st.markdown("---")
                     hot_leads = len([r for r in results if r['customer_segment'] == 'Hot Lead'])
-                    eager_customers = len([r for r in results if r['is_eager'] == 'YES'])
                     
-                    col1, col2 = st.columns(2)
-                    with col1:
-                        st.metric("🔥 Hot Leads", hot_leads, delta=f"{hot_leads} ready to buy")
-                    with col2:
-                        st.metric("😍 Eager Customers", eager_customers, delta=f"{eager_customers} show strong interest")
+                    st.metric("🔥 Hot Leads", hot_leads, delta=f"{hot_leads} ready to buy")
                     
                     # Priority summary
                     priority_count = very_high + high
@@ -931,6 +628,17 @@ elif page == "🚨 Priority Alerts":
             # Sort by intent (Very High first)
             priority.sort(key=lambda x: (x['intent'] == 'Very High', x['intent_score']), reverse=True)
             
+            # Download Priority List
+            priority_df = pd.DataFrame(priority)
+            priority_csv = priority_df.to_csv(index=False).encode('utf-8')
+            st.download_button(
+                label="📥 Download Priority List as CSV",
+                data=priority_csv,
+                file_name=f"priority_list_{date.today()}.csv",
+                mime="text/csv",
+                key='download-priority-csv'
+            )
+            
             st.markdown("---")
             
             # Display each priority customer
@@ -955,12 +663,7 @@ elif page == "🚨 Priority Alerts":
                         st.write(f"**Product Interest:** {p['product']}")
                         st.write(f"**Questions:** {p['questions']}")
                     
-                    with col3:
-                        # Sentiment badge
-                        sentiment_emoji = "😊" if p['sentiment'] == 'Positive' else "😟" if p['sentiment'] == 'Negative' else "😐"
-                        st.write(f"**Sentiment:** {sentiment_emoji} {p['sentiment']}")
-                        
-                        # Segment badge
+
                         segment_map = {
                             'Hot Lead': '🔥 Hot Lead',
                             'Warm Lead': '✨ Warm Lead',
@@ -974,14 +677,9 @@ elif page == "🚨 Priority Alerts":
                         st.write(f"**Timeframe:** {p['timeframe']}")
                         st.write(f"**Ready to Buy:** {p['ready_to_buy']}")
                     
-                    # Action recommendation based on sentiment and segment
+                    # Action recommendation based on segment
                     if p['intent'] == 'Very High':
-                        if p['sentiment'] == 'Positive' and p['is_eager'] == 'YES':
-                            st.success("⚡ **URGENT ACTION:** Reply within 15 minutes! Customer is VERY eager and positive!")
-                        elif p['has_doubts'] == 'YES':
-                            st.warning("⚡ **URGENT ACTION:** Reply within 30 minutes! Address doubts and concerns!")
-                        else:
-                            st.error("⚡ **URGENT ACTION:** Reply within 30 minutes! Customer is ready to buy NOW!")
+                        st.error("⚡ **URGENT ACTION:** Reply within 30 minutes! Customer is ready to buy NOW!")
                     else:
                         st.warning("⏰ **ACTION REQUIRED:** Reply within 2 hours to maintain interest")
                     
@@ -1000,12 +698,7 @@ elif page == "📈 Statistics":
         # Add legend section at top
         st.markdown("""
         <div style='background:#f0f7ff; padding:12px; border-radius:8px; margin-bottom:16px; border-left:4px solid #0052cc;'>
-        <b>📌 Quick Guide to Sentiment & Segment:</b><br><br>
-        <b>SENTIMENT</b> = Customer's Emotional Tone
-        <span style='background:#2ecc71; color:white; padding:1px 4px; border-radius:2px; margin-left:8px;'>😊 Positive</span>
-        <span style='background:#e74c3c; color:white; padding:1px 4px; border-radius:2px; margin-left:4px;'>😟 Negative</span>
-        <span style='background:#3498db; color:white; padding:1px 4px; border-radius:2px; margin-left:4px;'>😐 Neutral</span>
-        <br><br>
+        <b>📌 Quick Guide to Segment:</b><br><br>
         <b>SEGMENT</b> = Customer Lifecycle Stage
         <span style='background:#ff4444; color:white; padding:1px 4px; border-radius:2px; margin-left:8px;'>🔥 Hot (New+High Intent)</span>
         <span style='background:#ffbb33; color:white; padding:1px 4px; border-radius:2px; margin-left:4px;'>✨ Warm (New+Medium)</span>
@@ -1058,77 +751,17 @@ elif page == "📈 Statistics":
         
         st.markdown("---")
         
-        # Sentiment analysis
-        st.markdown("### 😊 Sentiment & Emotion Analysis")
-        
-        col1, col2 = st.columns(2)
-        
-        sentiment_counts = {}
-        segment_counts = {}
-        eager_count = 0
-        doubt_count = 0
-        
-        for r in results:
-            sentiment = r['sentiment']
-            sentiment_counts[sentiment] = sentiment_counts.get(sentiment, 0) + 1
-            
-            segment = r['customer_segment']
-            segment_counts[segment] = segment_counts.get(segment, 0) + 1
-            
-            if r['is_eager'] == 'YES':
-                eager_count += 1
-            if r['has_doubts'] == 'YES':
-                doubt_count += 1
-        
-        with col1:
-            if sentiment_counts:
-                import matplotlib.pyplot as plt
-                import matplotlib.patches as mpatches
-                fig, ax = plt.subplots(figsize=(8, 6))
-                # Warm sentiment colors
-                sentiment_color_map = {
-                    'Positive': '#f59e0b',
-                    'Very Positive': '#f97316',
-                    'Negative': '#ef4444',
-                    'Very Negative': '#c53030',
-                    'Neutral': '#6b7280'
-                }
-                labels = list(sentiment_counts.keys())
-                sizes = list(sentiment_counts.values())
-                colors = [sentiment_color_map.get(s, '#95a5a6') for s in labels]
-                wedges, texts, autotexts = ax.pie(sizes, labels=None, autopct='%1.1f%%', colors=colors, textprops={'color':'#111111'})
-                ax.legend(wedges, labels, title="Sentiment", loc='center left', bbox_to_anchor=(1, 0, 0.4, 1))
-                ax.axis('equal')
-                ax.set_title("Customer Sentiment Distribution", fontweight='bold', fontsize=12, color='#2b2b2b')
-                fig.patch.set_facecolor('#fffaf5')
-                fig.tight_layout()
-                st.pyplot(fig)
-        
-        with col2:
-            # Sentiment metrics
-            st.write("**Sentiment Overview:**")
-            for sentiment, count in sorted(sentiment_counts.items()):
-                emoji = "😊" if sentiment == 'Positive' else "😟" if sentiment == 'Negative' else "😐"
-                percentage = (count / len(results)) * 100
-                st.metric(f"{emoji} {sentiment}", f"{count} ({percentage:.1f}%)")
-        
-        # Emotional Signals
-        st.markdown("---")
-        st.markdown("### 💭 Emotional Signals & Customer Readiness")
-        
-        col1, col2, col3 = st.columns(3)
-        
-        with col1:
-            st.metric("😍 Eager Customers", eager_count, f"{(eager_count/len(results)*100):.1f}% show strong interest")
-        with col2:
-            st.metric("🤔 Customers with Doubts", doubt_count, f"{(doubt_count/len(results)*100):.1f}% need reassurance")
-        with col3:
-            positive_sentiment = sentiment_counts.get('Positive', 0)
-            st.metric("😊 Positive Sentiment", positive_sentiment, f"{(positive_sentiment/len(results)*100):.1f}% are happy")
         
         # Customer Segment Distribution
         st.markdown("---")
         st.markdown("### 👥 Customer Segment Distribution")
+        
+        # Calculate segment counts
+        segment_counts = {}
+        for r in results:
+            segment = r['customer_segment']
+            segment_counts[segment] = segment_counts.get(segment, 0) + 1
+
         
         col1, col2 = st.columns(2)
         

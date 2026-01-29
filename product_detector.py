@@ -304,16 +304,16 @@ class ProductDetector:
         try:
             from transformers import pipeline
 
-            print("⚙️  Loading free AI product detection model (zero-shot)...")
+            print("[INFO] Loading free AI product detection model (zero-shot)...")
             self.ai_model = pipeline(
                 "zero-shot-classification",
                 model="facebook/bart-large-mnli",
                 device=-1,  # Use CPU
             )
             self.use_ai = True
-            print("✅ AI product detection model loaded!\n")
+            print("[SUCCESS] AI product detection model loaded!\n")
         except Exception as e:
-            print(f"⚠️  AI product model unavailable (using rule-based only): {e}\n")
+            print(f"[WARNING] AI product model unavailable (using rule-based only): {e}\n")
             self.use_ai = False
             self.ai_model = None
 
@@ -338,7 +338,7 @@ class ProductDetector:
                 ai_products = self._detect_products_ai(text)
                 detected.extend(ai_products)
             except Exception as e:
-                print(f"  ⚠️  AI product detection failed: {e}, using keywords")
+                print(f"  [WARNING] AI product detection failed: {e}, using keywords")
                 pass
 
         # Rule-based detection (always run as fallback)
@@ -442,16 +442,38 @@ class ProductDetector:
 
     def _is_duplicate(self, product, detected):
         pl = product.lower()
-        return any(
-            pl in d["product"].lower() or d["product"].lower() in pl for d in detected
-        )
+        # Ignore AI-detected products when checking for duplicates
+        # This prevents generic AI results (e.g. "iPhone") from blocking specific rule results (e.g. "iPhone 13")
+        for d in detected:
+            if d["source"] == "ai":
+                continue
+            if pl in d["product"].lower() or d["product"].lower() in pl:
+                return True
+        return False
 
     def get_primary_product(self, products):
         if not products or products[0]["product"] == "Not specified":
             return "Not specified"
+        
+        # 1. Prioritize explicit text mentions (High Confidence)
+        # If the user typed the product name, they are asking about THAT, 
+        # even if they replied to a different post (e.g. "Do you have S24?" on iPhone post)
+        for p in products:
+            if p["source"] == "text":
+                return p["product"]
+        
+        # 2. Then high/medium confidence AI predictions
+        for p in products:
+            if p["source"] == "ai" and p["confidence"] in ["high", "medium"]:
+                return p["product"]
+                
+        # 3. Fallback to the Post Product (Context)
+        # If they didn't mention a product, they are likely asking about the post
         for p in products:
             if p["source"] == "post":
                 return p["product"]
+        
+        # 4. Default to first detected
         return products[0]["product"]
 
     def format_products_list(self, products):
