@@ -6,6 +6,7 @@ class ProductDetector:
     def __init__(self):
         self.use_ai = False
         self.ai_model = None
+        self.ai_loaded = False  # Track if we've tried to load AI
         self.product_categories = [
             "iPhone",
             "iPad",
@@ -296,30 +297,38 @@ class ProductDetector:
             },
         }
 
-        # Try to load free AI model (optional enhancement)
+        # Try to load AI model on initialization (PRIMARY detection method)
         self._load_ai_model()
 
     def _load_ai_model(self):
-        """Load free zero-shot classification model for product detection"""
-        try:
-            from transformers import pipeline
+        """Load AI model for PRIMARY product detection (zero-shot classification)"""
+        if self.ai_loaded:
+            return  # Already attempted to load
 
-            print("[INFO] Loading free AI product detection model (zero-shot)...")
+        self.ai_loaded = True
+        try:
+            from transformers import pipeline  # type: ignore
+
+            print("[INFO] Loading AI product detection model (PRIMARY method)...")
             self.ai_model = pipeline(
                 "zero-shot-classification",
                 model="facebook/bart-large-mnli",
                 device=-1,  # Use CPU
             )
             self.use_ai = True
-            print("[SUCCESS] AI product detection model loaded!\n")
+            print("[SUCCESS] AI model loaded! Using AI-FIRST detection.\n")
         except Exception as e:
-            print(f"[WARNING] AI product model unavailable (using rule-based only): {e}\n")
+            print(
+                f"[WARNING] AI model failed to load: {e}\n[INFO] Falling back to rule-based detection\n"
+            )
             self.use_ai = False
             self.ai_model = None
 
     def detect_products(self, text, post_product=""):
+        """PRIMARY: AI detection. SECONDARY: Rule-based fallback."""
         detected = []
 
+        # Add post product context
         if post_product and post_product.strip():
             detected.append(
                 {
@@ -332,16 +341,51 @@ class ProductDetector:
 
         text_lower = text.lower()
 
-        # Try AI model first (if available)
+        # PRIMARY: Try AI detection first
+        ai_products = self._detect_with_ai(text)
+        if ai_products:
+            # AI found products - use AI results
+            detected.extend(ai_products)
+            return detected
+
+        # SECONDARY: AI failed or found nothing, use rule-based detection
+        rule_products = self._detect_with_rules(text_lower, text)
+        if rule_products:
+            detected.extend(rule_products)
+            return detected
+
+        # No products detected
+        return (
+            detected
+            if detected
+            else [
+                {
+                    "product": "Not specified",
+                    "category": "Unknown",
+                    "confidence": "none",
+                    "source": "none",
+                }
+            ]
+        )
+
+    def _detect_with_ai(self, text):
+        """PRIMARY detection method using AI and transformers"""
+        # Ensure AI is loaded
+        if not self.ai_loaded:
+            self._load_ai_model()
+
+        # Use AI if available
         if self.use_ai and self.ai_model:
             try:
-                ai_products = self._detect_products_ai(text)
-                detected.extend(ai_products)
+                return self._detect_products_ai(text)
             except Exception as e:
-                print(f"  [WARNING] AI product detection failed: {e}, using keywords")
-                pass
+                print(f"  [WARNING] AI detection error: {e}")
+                return []
+        return []
 
-        # Rule-based detection (always run as fallback)
+    def _detect_with_rules(self, text_lower, text):
+        """SECONDARY detection method using rule-based patterns"""
+        detected = []
         for category, models in self.products.items():
             for model_name, patterns in models.items():
                 for pattern in patterns:
@@ -357,23 +401,11 @@ class ProductDetector:
                                     "product": prod_name,
                                     "category": category,
                                     "confidence": "high",
-                                    "source": "text",
+                                    "source": "rules",
                                 }
                             )
                         break
-
-        return (
-            detected
-            if detected
-            else [
-                {
-                    "product": "Not specified",
-                    "category": "Unknown",
-                    "confidence": "none",
-                    "source": "none",
-                }
-            ]
-        )
+        return detected
 
     def _detect_products_ai(self, text):
         """Detect products using zero-shot classification (AI-powered)"""
@@ -383,6 +415,8 @@ class ProductDetector:
 
             # Use zero-shot classification to find product mentions
             # The pipeline returns a dict with 'labels' and 'scores'
+            if not self.ai_model:
+                return []
             predictions = self.ai_model(
                 text_short, self.product_categories, multi_class=False
             )
@@ -442,11 +476,8 @@ class ProductDetector:
 
     def _is_duplicate(self, product, detected):
         pl = product.lower()
-        # Ignore AI-detected products when checking for duplicates
-        # This prevents generic AI results (e.g. "iPhone") from blocking specific rule results (e.g. "iPhone 13")
+        # Check for duplicate detection across all sources
         for d in detected:
-            if d["source"] == "ai":
-                continue
             if pl in d["product"].lower() or d["product"].lower() in pl:
                 return True
         return False
@@ -454,25 +485,22 @@ class ProductDetector:
     def get_primary_product(self, products):
         if not products or products[0]["product"] == "Not specified":
             return "Not specified"
-        
-        # 1. Prioritize explicit text mentions (High Confidence)
-        # If the user typed the product name, they are asking about THAT, 
-        # even if they replied to a different post (e.g. "Do you have S24?" on iPhone post)
-        for p in products:
-            if p["source"] == "text":
-                return p["product"]
-        
-        # 2. Then high/medium confidence AI predictions
+
+        # 1. Prioritize AI detection (PRIMARY method)
         for p in products:
             if p["source"] == "ai" and p["confidence"] in ["high", "medium"]:
                 return p["product"]
-                
+
+        # 2. Then rule-based detection (SECONDARY method)
+        for p in products:
+            if p["source"] == "rules":
+                return p["product"]
+
         # 3. Fallback to the Post Product (Context)
-        # If they didn't mention a product, they are likely asking about the post
         for p in products:
             if p["source"] == "post":
                 return p["product"]
-        
+
         # 4. Default to first detected
         return products[0]["product"]
 
