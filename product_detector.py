@@ -310,9 +310,11 @@ class ProductDetector:
             from transformers import pipeline  # type: ignore
 
             print("[INFO] Loading AI product detection model (PRIMARY method)...")
+            # Use XLM-RoBERTa XNLI checkpoint for multilingual zero-shot classification
+            # Common HF ID: 'joeddav/xlm-roberta-large-xnli'
             self.ai_model = pipeline(
                 "zero-shot-classification",
-                model="facebook/bart-large-mnli",
+                model="joeddav/xlm-roberta-large-xnli",
                 device=-1,  # Use CPU
             )
             self.use_ai = True
